@@ -178,6 +178,12 @@
   .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13.5px;font-weight:500;padding:6px 0}
 
   .ex-list{display:flex;flex-direction:column;gap:8px}
+  .grip{display:flex;align-items:center;justify-content:center;width:26px;margin-right:-4px;color:var(--dim);touch-action:none;cursor:grab}
+  .grip:active{cursor:grabbing;color:var(--text)}
+  .ex.ex-drag{grid-template-columns:26px 1fr auto 26px}
+  .ex.dragging{position:relative;z-index:5;border-color:var(--accent);box-shadow:var(--shadow);opacity:.97}
+  body.dragging-on{user-select:none}
+  body.dragging-on .ex:not(.dragging){transition:transform .16s cubic-bezier(.22,.68,.36,1)}
   .ex{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:12px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;transition:border-color .15s ease, transform .1s ease}
   .ex:hover{border-color:var(--dim)}
   .ex:active{transform:scale(.995)}
@@ -491,8 +497,7 @@
         <div class="cal-head"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
         <div class="cal" id="calGrid"></div>
         <div class="row" style="margin-top:14px;gap:16px;font-size:11px;color:var(--muted)">
-          <span class="row" style="gap:6px"><span style="width:9px;height:9px;border-radius:99px;background:var(--g-push)"></span>Musculação</span>
-          <span class="row" style="gap:6px"><span style="width:9px;height:9px;border-radius:99px;background:var(--good)"></span>Marcado</span>
+          <span class="row" style="gap:6px"><span style="width:9px;height:9px;border-radius:99px;background:var(--good)"></span>Treinei</span>
           <span class="row" style="gap:6px"><span style="width:14px;height:11px;border-radius:4px;background:color-mix(in srgb, var(--cardio) 14%, var(--surface-2));box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 60%, transparent)"></span>Cardio</span>
         </div>
       </div>
@@ -1528,20 +1533,84 @@
       activeSession.log[it.uid] = L;
     });
   }
-  function moveItem(uid, dir){
-    if (!activeSession) return false;
-    var a = activeSession.items, i = -1;
-    for (var k = 0; k < a.length; k++) if (a[k].uid === uid) i = k;
-    var j = i + dir;
-    if (i < 0 || j < 0 || j >= a.length) return false;
-    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-    touchState();
-    return true;
-  }
-  function itemPos(uid){
-    var a = activeSession ? activeSession.items : [];
-    for (var k = 0; k < a.length; k++) if (a[k].uid === uid) return k;
-    return -1;
+  /* arrastar pelo punho: reordena os exercícios da sessão */
+  function enableDrag(list){
+    var GAP = 8, drag = null;
+
+    function rowsOf(){ return Array.prototype.slice.call(list.querySelectorAll('.ex')); }
+
+    function layout(){
+      if (!drag) return;
+      drag.rows.forEach(function(el, i){
+        if (i === drag.from) return;
+        var shift = 0;
+        if (drag.from < i && i <= drag.to) shift = -(drag.h + GAP);
+        else if (drag.to <= i && i < drag.from) shift = (drag.h + GAP);
+        el.style.transform = shift ? 'translateY('+shift+'px)' : '';
+      });
+    }
+
+    function onMove(ev){
+      if (!drag) return;
+      ev.preventDefault();
+      var dy = ev.clientY - drag.y0;
+      drag.el.style.transform = 'translateY('+dy+'px)';
+
+      /* centro do arrastado contra o centro original dos outros */
+      var center = drag.mid0 + dy, to = drag.from;
+      for (var i = 0; i < drag.mids.length; i++){
+        if (i === drag.from) continue;
+        if (i < drag.from && center < drag.mids[i]) { to = Math.min(to, i); }
+        if (i > drag.from && center > drag.mids[i]) { to = Math.max(to, i); }
+      }
+      if (to !== drag.to){ drag.to = to; layout(); }
+
+      /* rola sozinho perto das bordas */
+      var sc = document.querySelector('.app > main');
+      if (sc){
+        var r = sc.getBoundingClientRect();
+        if (ev.clientY < r.top + 70) sc.scrollTop -= 10;
+        else if (ev.clientY > r.bottom - 70) sc.scrollTop += 10;
+      }
+    }
+
+    function onUp(){
+      if (!drag) return;
+      var from = drag.from, to = drag.to;
+      drag.rows.forEach(function(el){ el.style.transform = ''; el.classList.remove('dragging'); });
+      document.body.classList.remove('dragging-on');
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      drag = null;
+      if (from !== to && activeSession){
+        var a = activeSession.items, it = a.splice(from, 1)[0];
+        a.splice(to, 0, it);
+        touchState();
+      }
+      renderTreinoDetail();
+    }
+
+    Array.prototype.forEach.call(list.querySelectorAll('[data-grip]'), function(grip){
+      grip.addEventListener('pointerdown', function(ev){
+        if (ev.button !== undefined && ev.button !== 0) return;
+        var rows = rowsOf(), el = grip.closest('.ex'), from = rows.indexOf(el);
+        if (from < 0) return;
+        ev.preventDefault();
+        var rects = rows.map(function(r){ return r.getBoundingClientRect(); });
+        drag = {
+          el: el, rows: rows, from: from, to: from,
+          y0: ev.clientY, h: rects[from].height,
+          mid0: rects[from].top + rects[from].height / 2,
+          mids: rects.map(function(r){ return r.top + r.height / 2; })
+        };
+        el.classList.add('dragging');
+        document.body.classList.add('dragging-on');
+        window.addEventListener('pointermove', onMove, {passive:false});
+        window.addEventListener('pointerup', onUp);
+        window.addEventListener('pointercancel', onUp);
+      });
+    });
   }
 
   function ensureDraft(tid){
@@ -1743,7 +1812,9 @@
 
     if (live){
       html += '<div style="margin-top:12px"><button class="btn dashed" id="addExBtn">+ Adicionar exercício</button></div>' +
-        '<div style="margin-top:20px"><button class="btn" id="finishBtn">Concluir treino</button></div>';
+        '<div style="margin-top:20px"><button class="btn" id="finishBtn">Concluir treino</button></div>' +
+        '<div style="margin-top:10px"><button class="btn danger" id="cancelBtn">Cancelar treino</button>' +
+        '<p class="note" style="margin-top:8px;text-align:center">Sai sem registrar nada. Use quando abrir sem querer.</p></div>';
     } else {
       html += '<div style="margin-top:14px"><button class="btn ghost" id="editBtn">Editar treino</button></div>' +
         '<div style="margin-top:14px"><button class="btn danger" id="archiveBtn">Arquivar treino</button>' +
@@ -1762,6 +1833,17 @@
     } else {
       document.getElementById('addExBtn').addEventListener('click', function(){ openSwapSheet(null); });
       document.getElementById('finishBtn').addEventListener('click', finishSession);
+      var cb = document.getElementById('cancelBtn'), armed = false;
+      cb.addEventListener('click', function(){
+        if (!armed){
+          armed = true; cb.textContent = 'Confirmar — nada será salvo';
+          setTimeout(function(){ if (armed){ armed = false; cb.textContent = 'Cancelar treino'; } }, 5000);
+          return;
+        }
+        activeSession = null; openTreinoId = null;
+        touchState(); showTreinoList();
+        toast('Treino cancelado — nada foi registrado');
+      });
     }
 
     var list = document.getElementById('detailExList');
@@ -1781,7 +1863,7 @@
       } else if (last){
         loadText = isBw(it.ex) ? 'PC' : fmt(last.top) + ' kg'; loadLabel = 'última vez';
       } else { loadText = '–'; loadLabel = 'sem histórico'; }
-      return '<button class="ex" data-done="'+(allDone?1:0)+'" data-uid="'+it.uid+'">' +
+      return '<div class="ex'+(live?' ex-drag':'')+'" data-done="'+(allDone?1:0)+'" data-uid="'+it.uid+'" role="button" tabindex="0">' +
         '<span class="ex-idx">'+(allDone ? '✓' : String(i+1).padStart(2,'0'))+'</span>' +
         '<span><span class="ex-name">'+exLabel(e)+'</span>' +
           '<span class="ex-sub" style="color:'+gColor(e.g)+'">'+GROUPS[e.g].label+
@@ -1789,15 +1871,24 @@
               (it.rmin && it.rmax ? it.sets+' × '+it.rmin+'–'+it.rmax : it.sets+(it.sets===1?' série':' séries'))+
               (it.warm ? ' + '+it.warm+' aquec.' : '')+'</span></span>' +
           (it.from && exById[it.from] ? '<span class="ex-swap">no lugar de '+exLabel(exById[it.from])+'</span>' : '') +
-        '</span><span class="ex-load">'+loadText+'<small>'+loadLabel+'</small></span></button>';
+        '</span><span class="ex-load">'+loadText+'<small>'+loadLabel+'</small></span>' +
+        (live ? '<span class="grip" data-grip aria-label="Arrastar para reordenar">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 7h.01M15 7h.01M9 12h.01M15 12h.01M9 17h.01M15 17h.01"/></svg></span>' : '') +
+        '</div>';
     }).join('');
 
     Array.prototype.forEach.call(list.querySelectorAll('.ex'), function(btn, idx){
-      btn.addEventListener('click', function(){
+      function open(ev){
+        if (ev.target.closest && ev.target.closest('[data-grip]')) return;
         ensureDraft(t.id);
         openLogSheet(activeSession.items[idx].uid);
+      }
+      btn.addEventListener('click', open);
+      btn.addEventListener('keydown', function(ev){
+        if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); open(ev); }
       });
     });
+    if (live) enableDrag(list);
   }
 
   /* ===================== registro ===================== */
@@ -1830,14 +1921,10 @@
         '<div style="margin-top:16px"><div class="set-head"><span>#</span><span>Carga (kg)</span><span>Reps</span><span>OK</span></div>' +
           '<div id="setRows"></div></div>' +
         '<div id="plateHint"></div>' +
-        '<div class="steppers">' +
-          '<div class="stp"><button id="setMinus" aria-label="Menos séries">−</button>' +
-            '<span>séries <b id="setCount">1</b></span>' +
-            '<button id="setPlus" aria-label="Mais séries">+</button></div>' +
-          '<div class="stp"><button id="ordUp" aria-label="Subir na ordem">↑</button>' +
-            '<span>ordem <b id="ordPos">1</b>/'+activeSession.items.length+'</span>' +
-            '<button id="ordDown" aria-label="Descer na ordem">↓</button></div>' +
-        '</div>' +
+        '<div class="stp" style="margin-top:12px">' +
+          '<button id="setMinus" aria-label="Menos séries">−</button>' +
+          '<span>séries <b id="setCount">1</b></span>' +
+          '<button id="setPlus" aria-label="Mais séries">+</button></div>' +
         '<div class="row" style="margin-top:12px;gap:8px">' +
           '<button class="btn ghost" id="swapBtn" style="flex:1">Trocar exercício</button>' +
           '<button class="btn ghost" id="removeBtn" style="flex:none;width:auto;padding-inline:16px;color:var(--muted)">Tirar</button></div>' +
@@ -1849,23 +1936,6 @@
     document.getElementById('scrim').addEventListener('click', closeSheet);
     document.getElementById('sheetClose').addEventListener('click', closeSheet);
     document.getElementById('sheetDone').addEventListener('click', closeSheet);
-
-    function paintOrd(){
-      var i = itemPos(uid), n = activeSession.items.length;
-      var lbl = document.getElementById('ordPos');
-      if (lbl) lbl.textContent = i + 1;
-      var up = document.getElementById('ordUp'), dn = document.getElementById('ordDown');
-      if (up){ up.disabled = i <= 0;     up.style.opacity = i <= 0 ? '.25' : '1'; }
-      if (dn){ dn.disabled = i >= n - 1; dn.style.opacity = i >= n - 1 ? '.25' : '1'; }
-    }
-    function move(dir){
-      if (!moveItem(uid, dir)) return;
-      paintOrd();
-      renderTreinoDetail();   /* a lista atrás da folha acompanha */
-    }
-    document.getElementById('ordUp').addEventListener('click', function(){ move(-1); });
-    document.getElementById('ordDown').addEventListener('click', function(){ move(1); });
-    paintOrd();
 
     function paintSets(){
       var c = document.getElementById('setCount');
@@ -2108,10 +2178,7 @@
         if (!w && MANUAL[k]){
           state = 'done'; mark = '✓'; color = 'var(--good)';
         } else if (w){
-          state = 'done'; mark = '✓';
-          var tr = w.treino_id ? treinoById[w.treino_id] : null;
-          var fe = tr && tr.items[0] ? exById[tr.items[0].ex] : null;
-          color = fe ? gColor(fe.g) : 'var(--accent)';
+          state = 'done'; mark = '✓'; color = 'var(--good)';
         } else if (st){
           state = 'plan'; mark = '·';
           var fe2 = exById[st.items[0] && st.items[0].ex];
@@ -3172,11 +3239,8 @@
       if (w || man) nW++;
       if (cs) nC++;
       var isToday = k === dayKey(today), sel = k === selectedDay;
-      var tr = w && w.treino_id ? treinoById[w.treino_id] : null;
-      var firstEx = tr && tr.items[0] ? exById[tr.items[0].ex] : null;
-      var color = firstEx ? gColor(firstEx.g) : 'var(--muted)';
       cells += '<button class="cal-day'+((w||man)?' has':'')+(cs?' cardio':'')+(isToday?' today':'')+(sel?' sel':'')+'" data-day="'+k+'">' +
-        d + ((w||man) ? '<span class="dotm" style="background:'+(sel?'var(--bg)':(man?'var(--good)':color))+'"></span>' : '') + '</button>';
+        d + ((w||man) ? '<span class="dotm" style="background:'+(sel?'var(--bg)':'var(--good)')+'"></span>' : '') + '</button>';
     }
     document.getElementById('calGrid').innerHTML = cells;
     document.getElementById('agendaHead').innerHTML =
@@ -3235,7 +3299,9 @@
             '<div class="pr-date" style="color:'+gColor(ex.g)+'">'+GROUPS[ex.g].label+'</div></div>' +
             '<div class="pr-val">'+(ss[0].bw ? 'PC' : fmt(Math.max.apply(null, ss.map(function(s){ return s.weight_kg; }))))+
               '<small>'+ss.map(function(s){ return s.reps; }).join(', ')+' reps</small></div></div>';
-        }).join('') + '</div></div>';
+        }).join('') + '</div></div>' +
+        '<div style="margin-top:12px"><button class="btn danger" id="delWorkout">Excluir este registro</button>' +
+        '<p class="note" style="margin-top:8px;text-align:center">Para sessões abertas sem querer. As cargas deste dia saem dos gráficos.</p></div>';
     }
     if (cs2.length){
       html += '<div class="stack" style="margin-top:'+(w2?'18px':'4px')+'">' +
@@ -3249,6 +3315,19 @@
     }
     host.innerHTML = html;
     bindManual();
+
+    var dw = document.getElementById('delWorkout'), dwArmed = false;
+    if (dw) dw.addEventListener('click', function(){
+      if (!dwArmed){
+        dwArmed = true; dw.textContent = 'Confirmar exclusão deste dia';
+        setTimeout(function(){ if (dwArmed){ dwArmed = false; dw.textContent = 'Excluir este registro'; } }, 5000);
+        return;
+      }
+      WORKOUTS = WORKOUTS.filter(function(x){ return x.id !== w2.id; });
+      reindexDays(); touchState();
+      renderAgenda(); renderTreinoList(); renderCargas();
+      toast('Registro excluído');
+    });
   }
 
   function bindManual(){
