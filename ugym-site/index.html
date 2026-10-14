@@ -363,11 +363,13 @@
   .toast{
     position:fixed;left:16px;right:16px;top:calc(14px + env(safe-area-inset-top, 0px));
     z-index:70;max-width:428px;margin:0 auto;display:flex;align-items:center;gap:9px;
-    background:var(--accent);color:#fff;border-radius:12px;padding:12px 15px;
+    background:var(--good);color:#fff;border-radius:12px;padding:12px 15px;
     font-size:13.5px;font-weight:600;box-shadow:var(--shadow);
     opacity:0;transform:translateY(-12px);pointer-events:none;transition:opacity .2s ease, transform .2s ease;
   }
   .toast.on{opacity:1;transform:none}
+  .toast.pr{background:var(--accent)}
+  .toast.warn{background:#C9A227}
   .toast svg{flex:none}
   @media (prefers-reduced-motion: reduce){ .toast{transition:none} }
 
@@ -380,6 +382,9 @@
   .ed-f{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:6px 7px;min-width:0}
   .ed-f label{display:block;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:2px}
   .ed-f input{width:100%;background:none;border:none;outline:none;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px;text-align:center}
+  .cd-tipo{display:block;text-align:left;min-width:0;flex:1}
+  .cd-tipo .ed-n{display:block}
+  .cd-tipo .ed-e{display:block}
   .dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
   .dow-b{padding:9px 0;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);text-align:center;font-size:12px;color:var(--muted);min-width:0}
   .dow-b.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
@@ -992,7 +997,7 @@
       }));
       return true;
     } catch(e){
-      if (e && (e.name === 'QuotaExceededError' || e.code === 22)) toast('Memória do aparelho cheia');
+      if (e && (e.name === 'QuotaExceededError' || e.code === 22)) toast('Memória do aparelho cheia', 'warn');
       return false;
     }
   }
@@ -1156,9 +1161,13 @@
 
     CARDIOS.forEach(function(c){
       if (!isUuid(c.id)) return;
-      var tg = c.target || {};
+      var ps = partsDe(c), p0 = ps[0] || {days:[], tipo:c.name, target:{}};
+      var tg = p0.target || {};
       R.cardio_protocols.push({id:c.id, user_id:u, name:c.name,
-        modality: c.modality || c.name, weekdays: (c.days || []).slice(),
+        modality: p0.tipo || c.modality || c.name, weekdays: diasDe(c),
+        parts: ps.map(function(x){
+          return {days:(x.days||[]).slice(), tipo:x.tipo || '', target:x.target || {}};
+        }),
         target_duration_min: num(tg.duration), target_distance_km: num(tg.distance),
         target_incline_pct: num(tg.incline), target_level: num(tg.level),
         target_speed_kmh: num(tg.speed), target_kcal: num(tg.kcal),
@@ -1241,8 +1250,11 @@
       if (r.target_level != null)        tg.level    = Number(r.target_level);
       if (r.target_speed_kmh != null)    tg.speed    = Number(r.target_speed_kmh);
       if (r.target_kcal != null)         tg.kcal     = Number(r.target_kcal);
+      var ps = (r.parts && r.parts.length)
+        ? r.parts.map(function(x){ return {days:(x.days||[]).slice(), tipo:x.tipo||'', target:x.target||{}}; })
+        : [{days:(r.weekdays || []).slice(), tipo:r.modality, target:tg}];
       return {id:r.id, name:r.name, modality:r.modality, archived:!!r.archived,
-              days:(r.weekdays || []).slice(), target:tg, note:r.note || ''};
+              days:(r.weekdays || []).slice(), target:tg, note:r.note || '', parts:ps};
     });
     reindexCardios();
 
@@ -1393,7 +1405,7 @@
       signWarned = false;
       renderFotos();
     } catch(e){
-      if (!signWarned){ signWarned = true; toast('Não consegui carregar as fotos agora'); }
+      if (!signWarned){ signWarned = true; toast('Não consegui carregar as fotos agora', 'warn'); }
     }
     signing = false;
   }
@@ -1483,7 +1495,7 @@
       saveState(); renderAll(); photoUrls();
     } catch(e){
       setSync('off');
-      toast('Sem conexão com o servidor — usando os dados do aparelho');
+      toast('Sem conexão com o servidor — usando os dados do aparelho', 'warn');
     }
   }
 
@@ -1538,7 +1550,7 @@
     if (ai) ai.addEventListener('click', function(){
       close();
       if (sb){ CLOUD = true; showAuth(); }
-      else toast('Biblioteca do servidor não carregou aqui');
+      else toast('Biblioteca do servidor não carregou aqui', 'warn');
     });
   }
 
@@ -2050,14 +2062,21 @@
   }
 
   var toastTimer = null;
-  function toast(msg){
+  var TOAST_ICON = {
+    ok:   '<path d="M5 12.5l4.5 4.5L19 7"/>',
+    pr:   '<path d="M12 3l2.4 5.6 6.1.5-4.6 4 1.4 6-5.3-3.2L6.7 19l1.4-6-4.6-4 6.1-.5z"/>',
+    warn: '<path d="M12 8v5M12 17h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>'
+  };
+  function toast(msg, tipo){
+    tipo = TOAST_ICON[tipo] ? tipo : 'ok';
     var el = document.getElementById('toast');
     if (!el){
       el = document.createElement('div');
-      el.id = 'toast'; el.className = 'toast';
+      el.id = 'toast';
       document.body.appendChild(el);
     }
-    el.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.4 5.6 6.1.5-4.6 4 1.4 6-5.3-3.2L6.7 19l1.4-6-4.6-4 6.1-.5z"/></svg><span>'+msg+'</span>';
+    el.className = 'toast ' + tipo;
+    el.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'+TOAST_ICON[tipo]+'</svg><span>'+msg+'</span>';
     el.classList.add('on');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function(){ el.classList.remove('on'); }, 3200);
@@ -2089,7 +2108,7 @@
         r.reps = parseInt(document.getElementById('set-'+item.uid+'-'+i+'-reps').value, 10) || 0;
         if (!wasDone && r.done){
           var pr = prCheck(item.ex, r.kg, r.reps);
-          if (pr) toast(pr.text);
+          if (pr) toast(pr.text, 'pr');
         }
         renderSetRows(item, rows); updatePlateHint(item, rows);
         renderTreinoDetail();
@@ -2212,6 +2231,65 @@
   /* ===================== CARDIO ===================== */
   var openCardioId = null;
 
+  var CARDIO_TIPOS = [
+    ['Corrida', ['Corrida ao ar livre','Corrida na esteira','Corrida em trilha','Tiros / sprint']],
+    ['Caminhada', ['Caminhada ao ar livre','Caminhada na esteira','Caminhada inclinada','Trilha']],
+    ['Bicicleta', ['Bike ao ar livre','Bike ergométrica','Spinning','Mountain bike']],
+    ['Máquinas', ['Elíptico','Escada (simulador)','Escada de verdade','Remo ergômetro','Ski ergômetro','Air bike']],
+    ['Água', ['Natação em piscina','Natação em águas abertas','Hidroginástica']],
+    ['Intervalado', ['HIIT','Treino funcional','Circuito','Pular corda','Condicionamento']],
+    ['Luta', ['Boxe','Muay thai','Kickboxing','Jiu-jitsu','Wrestling']],
+    ['Esportes', ['Futebol','Futsal','Basquete','Vôlei','Tênis','Beach tennis','Padel','Handebol','Corrida de obstáculos']],
+    ['Outros', ['Escalada','Dança','Patins','Skate','Surf','Stand up paddle','Caiaque','Subida de morro','Mobilidade','Outro']]
+  ];
+  /* um protocolo é feito de blocos: cada bloco tem seus dias, seu tipo e seu alvo */
+  function partsDe(c){
+    if (c.parts && c.parts.length) return c.parts;
+    c.parts = [{days:(c.days||[]).slice(), tipo: c.modality || c.name, target: c.target || {}}];
+    return c.parts;
+  }
+  function diasDe(c){
+    var out = [];
+    partsDe(c).forEach(function(p){ (p.days||[]).forEach(function(d){ if (out.indexOf(d) < 0) out.push(d); }); });
+    return out.sort();
+  }
+  function parteDoDia(c, dow){
+    var ps = partsDe(c);
+    for (var i = 0; i < ps.length; i++) if ((ps[i].days||[]).indexOf(dow) >= 0) return ps[i];
+    return null;
+  }
+  function alvoDoDia(c, dow, chave){
+    var p = parteDoDia(c, dow);
+    return (p && p.target && p.target[chave]) || 0;
+  }
+
+  function tipoExiste(nome){
+    var a = (nome||'').trim().toLowerCase();
+    for (var i = 0; i < CARDIO_TIPOS.length; i++){
+      for (var j = 0; j < CARDIO_TIPOS[i][1].length; j++){
+        if (CARDIO_TIPOS[i][1][j].toLowerCase() === a) return CARDIO_TIPOS[i][1][j];
+      }
+    }
+    return null;
+  }
+  /* lista de tipos para escolher, com busca */
+  function tipoPickerHtml(busca, atual){
+    var q = (busca||'').trim().toLowerCase(), out = '';
+    CARDIO_TIPOS.forEach(function(grupo){
+      var hits = grupo[1].filter(function(t){
+        return !q || t.toLowerCase().indexOf(q) >= 0 || grupo[0].toLowerCase().indexOf(q) >= 0;
+      });
+      if (!hits.length) return;
+      out += '<div class="eyebrow" style="margin:14px 0 7px">'+grupo[0]+'</div><div class="chips">' +
+        hits.map(function(t){
+          var on = t === atual;
+          return '<button class="chip" data-tipo="'+t.replace(/"/g,'&quot;')+'"'+
+            (on ? ' style="border-color:var(--cardio);color:var(--cardio)"' : '')+'>'+t+'</button>';
+        }).join('') + '</div>';
+    });
+    return out || '<div class="empty">Nenhum tipo com esse nome.</div>';
+  }
+
   function cardioDetails(l){
     var d = [];
     if (l.distance) d.push(fmt(l.distance,1)+' km');
@@ -2220,6 +2298,23 @@
     if (l.level) d.push('nível '+l.level);
     return d;
   }
+  function alvoTexto(tg){
+    var parts = [];
+    if (tg.duration) parts.push(tg.duration + ' min');
+    if (tg.distance) parts.push(fmt(tg.distance,1) + ' km');
+    if (tg.kcal) parts.push(tg.kcal + ' kcal');
+    if (tg.incline) parts.push(tg.incline + '% inc.');
+    if (tg.speed) parts.push(fmt(tg.speed,1) + ' km/h');
+    if (tg.level) parts.push('nível ' + tg.level);
+    return parts.join(' · ');
+  }
+  function resumoPartes(c){
+    return partsDe(c).map(function(pt){
+      var a = alvoTexto(pt.target || {});
+      return daysLabel(pt.days) + ' · ' + (pt.tipo || '?') + (a ? ' · ' + a : '');
+    }).join('<span style="color:var(--line)"> | </span>');
+  }
+
   function cardioTargetParts(c){
     var t = c.target, parts = [];
     if (t.duration) parts.push(t.duration + ' min');
@@ -2253,15 +2348,15 @@
       var doneTxt = '–', mark = '', state = 'off', color = 'var(--cardio)';
       if (mode === 'cardio'){
         var dc = cardioByDay[k] || [];
-        var sc = activeCardios().filter(function(c){ return c.days && c.days.indexOf(i) >= 0; });
+        var sc = activeCardios().filter(function(c){ return !!parteDoDia(c, i); });
         if (dc.length){
           state = 'done'; mark = '✓';
           var dm = dc.reduce(function(a,l){ return a+(l.duration||0); },0);
           doneTxt = dm || dc.reduce(function(a,l){ return a+(l.kcal||0); },0) || 0;
         } else if (sc.length){
           state = 'plan'; mark = '·';
-          var pm = sc.reduce(function(a,c){ return a+(c.target.duration||0); },0);
-          doneTxt = pm || sc.reduce(function(a,c){ return a+(c.target.kcal||0); },0) || 0;
+          var pm = sc.reduce(function(a,c){ return a+alvoDoDia(c, i, 'duration'); },0);
+          doneTxt = pm || sc.reduce(function(a,c){ return a+alvoDoDia(c, i, 'kcal'); },0) || 0;
         }
       } else {
         var w = workoutsByDay[k];
@@ -2355,15 +2450,18 @@
     var kcal = weekLogs.reduce(function(a,l){ return a + (l.kcal || 0); }, 0);
     var planned = 0, plannedKcal = 0;
     activeCardios().forEach(function(c){
-      var n = c.days ? c.days.length : 0;
-      planned += n * (c.target.duration || 0);
-      plannedKcal += n * (c.target.kcal || 0);
+      partsDe(c).forEach(function(pt){
+        var n = (pt.days || []).length, tg = pt.target || {};
+        planned += n * (tg.duration || 0);
+        plannedKcal += n * (tg.kcal || 0);
+      });
     });
-    /* se a semana é de calorias e não de minutos, mostra calorias */
-    var porKcal = (planned === 0 && mins === 0) && (plannedKcal > 0 || kcal > 0);
-    var resumo = porKcal
-      ? kcal + ' de ' + plannedKcal + ' kcal'
-      : mins + ' de ' + planned + ' min';
+    /* mostra as unidades que a semana realmente usa */
+    var temMin = planned > 0 || mins > 0, temKcal = plannedKcal > 0 || kcal > 0;
+    var pedacos = [];
+    if (temMin || !temKcal) pedacos.push(mins + ' de ' + planned + ' min');
+    if (temKcal) pedacos.push(kcal + ' de ' + plannedKcal + ' kcal');
+    var resumo = pedacos.join(' · ');
     var isThisWeek = cardioWeek === 0;
 
     host.innerHTML =
@@ -2378,12 +2476,13 @@
       '<div class="stack-lg"><div class="stack"><h2 class="section">Protocolos</h2>' +
         activeCardios().map(function(c){
           var done = doneToday(c.id);
-          var istoday = c.days && c.days.indexOf(today.getDay()) >= 0;
+          var pHoje = parteDoDia(c, today.getDay());
+          var istoday = !!pHoje;
           return '<div class="cd-card'+(istoday?' cd-today':'')+'">' +
             '<button class="cd-main" data-cardio="'+c.id+'">' +
               (istoday ? '<span class="sug-flag" style="color:var(--cardio)">Marcado para hoje</span>' : '') +
               '<span class="cd-name">'+c.name+'</span>' +
-              '<span class="cd-meta">'+daysLabel(c.days)+' · '+cardioTargetParts(c).join(' · ')+'</span></button>' +
+              '<span class="cd-meta">'+resumoPartes(c)+'</span></button>' +
             '<button class="cd-check'+(done?' on':'')+'" data-done="'+c.id+'" aria-label="Marcar como feito">' +
               '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(done?3:2.2)+'" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>' +
             '</button></div>';
@@ -2428,15 +2527,10 @@
   function renderCardioDetail(){
     var c = cardioById[openCardioId];
     if (!c) return;
-    var logs = logsFor(c.id), t = c.target, rows = [];
-    if (t.duration) rows.push(['Duração', t.duration + ' min']);
-    if (t.incline) rows.push(['Inclinação', t.incline + '%']);
-    if (t.speed) rows.push(['Velocidade', fmt(t.speed,1) + ' km/h']);
-    if (t.level) rows.push(['Nível', String(t.level)]);
-    if (t.distance) rows.push(['Distância', fmt(t.distance,1) + ' km']);
-    if (t.kcal) rows.push(['Calorias', t.kcal + ' kcal']);
-    if (t.blocks) rows.push(['Blocos', t.blocks]);
-    rows.push(['Dias', daysLabel(c.days)]);
+    var logs = logsFor(c.id), rows = [];
+    partsDe(c).forEach(function(pt){
+      rows.push([daysLabel(pt.days), (pt.tipo || '?') + (alvoTexto(pt.target||{}) ? ' · ' + alvoTexto(pt.target) : '')]);
+    });
 
     // progressão: na mesma configuração, mais distância (ou mais tempo) no mesmo protocolo
     var M;
@@ -2468,7 +2562,7 @@
       '<button class="back" id="cardioBack"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Cardio</button>' +
       '<div class="page-head" style="padding-bottom:12px">' + watermark('var(--cardio)') + '<div>' +
         '<h1 class="page" style="font-size:26px">'+c.name+'</h1>' +
-        '<div class="page-sub">'+c.modality+(c.note ? ' · ' + c.note : '')+'</div></div></div>' +
+        '<div class="page-sub">'+partsDe(c).length+(partsDe(c).length===1?' tipo':' tipos')+(c.note ? ' · ' + c.note : '')+'</div></div></div>' +
       '<div style="margin-bottom:18px"><button class="btn" id="cardioLogBtn" style="background:var(--cardio)">' +
         (doneToday(c.id) ? 'Registrar outra sessão hoje' : 'Marcar como feito hoje') + '</button></div>' +
       chart +
@@ -2532,122 +2626,253 @@
     };
   }
 
+  var kTipoBusca = '';
   function openCardioLogSheet(cardioId, diaKey){
     var c = cardioId ? cardioById[cardioId] : null;
-    var t = c ? c.target : {};
     var quando = diaKey ? dayFromIso(keyToIso(diaKey)) : new Date();
-    document.getElementById('sheetHost').innerHTML =
-      '<div class="scrim" id="scrimC"></div>' +
-      '<div class="sheet" role="dialog" aria-label="Registrar cardio">' +
-        '<div class="grabber"></div>' +
-        '<div class="spread"><h3>O que você fez?</h3>' +
-          '<button class="btn ghost sm" id="cClose">Fechar</button></div>' +
-        (c ? '<div class="note" style="margin-top:8px">Veio do protocolo <strong>' + c.name + '</strong>. Mude o que for diferente e salve.</div>' : '') +
-        '<div style="margin-top:14px"><input class="txt" id="kName" type="text" value="'+
-          (c ? c.name.replace(/"/g,'&quot;') : '')+'" placeholder="Corrida, bike, esteira..." aria-label="O que você fez"></div>' +
+    var pt = c ? parteDoDia(c, quando.getDay()) : null;
+    if (c && !pt) pt = partsDe(c)[0];
+    var t = (pt && pt.target) || {};
+    var tipo = (pt && tipoExiste(pt.tipo)) || null;
+    var escolhendo = !tipo;
+    kTipoBusca = '';
+
+    function render(){
+      document.getElementById('sheetHost').innerHTML =
+        '<div class="scrim" id="scrimC"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Registrar cardio">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>'+(escolhendo ? 'O que você fez?' : 'Registrar cardio')+'</h3>' +
+            '<button class="btn ghost sm" id="cClose">Fechar</button></div>' +
+          (escolhendo ? painelTipo() : painelDados()) +
+        '</div>';
+      lockScroll(true);
+      document.getElementById('scrimC').addEventListener('click', closeCardioSheet);
+      document.getElementById('cClose').addEventListener('click', closeCardioSheet);
+      if (escolhendo) ligarTipo(); else ligarDados();
+    }
+
+    function painelTipo(){
+      return '<div class="search" style="margin-top:14px">' +
+          '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+          '<input id="kBusca" type="search" value="'+kTipoBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bike, natação..." aria-label="Buscar tipo"></div>' +
+        '<div id="kTipos">' + tipoPickerHtml(kTipoBusca, tipo) + '</div>';
+    }
+    function ligarTipo(){
+      var inp = document.getElementById('kBusca');
+      inp.addEventListener('input', function(ev){
+        kTipoBusca = ev.target.value;
+        document.getElementById('kTipos').innerHTML = tipoPickerHtml(kTipoBusca, tipo);
+        ligarChips();
+      });
+      ligarChips();
+    }
+    function ligarChips(){
+      bindAll(document.getElementById('kTipos'), '[data-tipo]', function(b){
+        tipo = b.getAttribute('data-tipo');
+        escolhendo = false;
+        render();
+      });
+    }
+
+    function painelDados(){
+      return (c ? '<div class="note" style="margin-top:8px">Veio do protocolo <strong>'+c.name+'</strong>. Mude o que for diferente e salve.</div>' : '') +
+        '<button class="ed-row" id="kTipoBtn" style="width:100%;margin-top:14px;text-align:left">' +
+          '<span><span class="ed-n">'+tipo+'</span>' +
+            '<span class="ed-e">toque para trocar o tipo</span></span>' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>' +
         cardioFormFields({duration:t.duration, distance:t.distance, incline:t.incline, level:t.level, kcal:t.kcal}) +
         '<div style="margin-top:12px"><div class="field">' +
           '<input id="kDate" type="date" value="'+isoDay(quando)+'" max="'+isoDay(new Date())+'" aria-label="Dia">' +
           '<label for="kDate">dia</label></div></div>' +
-        '<div style="margin-top:16px"><button class="btn" id="kSave" style="background:var(--cardio)">Salvar</button></div>' +
-      '</div>';
-    lockScroll(true);
-    document.getElementById('scrimC').addEventListener('click', closeCardioSheet);
-    document.getElementById('cClose').addEventListener('click', closeCardioSheet);
-    document.getElementById('kSave').addEventListener('click', function(){
-      var f = readCardioForm();
-      if (!f.duration && !f.kcal && !f.distance){ document.getElementById('kDur').focus(); return; }
-      var nm = (document.getElementById('kName').value || '').trim() || (c ? c.name : 'Cardio');
-      CARDIO_LOGS.push({
-        id:newId(),
-        cardio_id: (c && nm === c.name) ? c.id : null,
-        name: nm,
-        modality: c ? c.modality : nm,
-        date: lerData('kDate', quando), duration: f.duration, distance: f.distance,
-        incline: f.incline, level: f.level, kcal: f.kcal
+        '<div style="margin-top:16px"><button class="btn" id="kSave" style="background:var(--cardio)">Salvar</button></div>';
+    }
+    function ligarDados(){
+      document.getElementById('kTipoBtn').addEventListener('click', function(){
+        escolhendo = true; kTipoBusca = ''; render();
       });
-      CARDIO_LOGS.sort(function(a,b){ return a.date - b.date; });
-      reindexDays(); touchState(); closeCardioSheet(); renderAgenda();
-      toast('Cardio registrado');
-    });
+      document.getElementById('kSave').addEventListener('click', function(){
+        var f = readCardioForm();
+        if (!f.duration && !f.kcal && !f.distance){ document.getElementById('kDur').focus(); return; }
+        CARDIO_LOGS.push({
+          id:newId(),
+          cardio_id: c ? c.id : null,
+          name: tipo,
+          modality: tipo,
+          date: lerData('kDate', quando), duration: f.duration, distance: f.distance,
+          incline: f.incline, level: f.level, kcal: f.kcal
+        });
+        CARDIO_LOGS.sort(function(a,b){ return a.date - b.date; });
+        reindexDays(); touchState(); closeCardioSheet(); renderAgenda();
+        toast('Cardio registrado');
+      });
+    }
+
+    render();
   }
 
   /* ---------- criar / editar protocolo de cardio ---------- */
-  var cdDraft = null;
+  var cdDraft = null, cdBusca = '', cdPick = null;
   function openCardioEditor(id){
     var c = id ? cardioById[id] : null;
+    function limpaAlvo(t){
+      t = t || {};
+      return {duration:t.duration||'', distance:t.distance||'', incline:t.incline||'',
+              level:t.level||'', speed:t.speed||'', kcal:t.kcal||''};
+    }
     cdDraft = c
-      ? {id:c.id, name:c.name, modality:c.modality, days:(c.days||[]).slice(), target:{
-          duration:c.target.duration||'', distance:c.target.distance||'',
-          incline:c.target.incline||'', level:c.target.level||'', speed:c.target.speed||'',
-          kcal:c.target.kcal||''}, note:c.note||''}
-      : {id:null, name:'', modality:'', days:[], target:{duration:'',distance:'',incline:'',level:'',speed:'',kcal:''}, note:''};
+      ? {id:c.id, name:c.name, note:c.note||'',
+         parts: partsDe(c).map(function(pt){
+           return {days:(pt.days||[]).slice(), tipo:pt.tipo||'', target:limpaAlvo(pt.target)};
+         })}
+      : {id:null, name:'', note:'', parts:[{days:[], tipo:'', target:limpaAlvo(null)}]};
+    cdPick = null; cdBusca = '';
     renderCardioEditor();
   }
+
   function renderCardioEditor(){
     var d = cdDraft;
-    function fld(k, lab, step){
-      return '<div class="ed-f"><label>'+lab+'</label><input type="number"'+(step?' step="'+step+'"':'')+
-        ' inputmode="decimal" value="'+d.target[k]+'" data-t="'+k+'" aria-label="'+lab+'"></div>';
+    var host = document.getElementById('sheetHost');
+
+    /* escolhendo o tipo de um bloco */
+    if (cdPick !== null){
+      host.innerHTML =
+        '<div class="scrim" id="scrimCD"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Tipo de cardio">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>Tipo de cardio</h3>' +
+            '<button class="btn ghost sm" id="cdVolta">Voltar</button></div>' +
+          '<div class="search" style="margin-top:14px">' +
+            '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+            '<input id="cdBusca" type="search" value="'+cdBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bike, natação..." aria-label="Buscar tipo"></div>' +
+          '<div id="cdTipos">' + tipoPickerHtml(cdBusca, d.parts[cdPick].tipo) + '</div>' +
+        '</div>';
+      lockScroll(true);
+      function voltar(){ cdPick = null; cdBusca = ''; renderCardioEditor(); }
+      document.getElementById('scrimCD').addEventListener('click', voltar);
+      document.getElementById('cdVolta').addEventListener('click', voltar);
+      document.getElementById('cdBusca').addEventListener('input', function(ev){
+        cdBusca = ev.target.value;
+        document.getElementById('cdTipos').innerHTML = tipoPickerHtml(cdBusca, d.parts[cdPick].tipo);
+        ligaChips();
+      });
+      function ligaChips(){
+        bindAll(document.getElementById('cdTipos'), '[data-tipo]', function(b){
+          d.parts[cdPick].tipo = b.getAttribute('data-tipo');
+          voltar();
+        });
+      }
+      ligaChips();
+      return;
     }
-    document.getElementById('sheetHost').innerHTML =
+
+    function campo(i, k, lab, step){
+      return '<div class="ed-f"><label>'+lab+'</label><input type="number"'+(step?' step="'+step+'"':'')+
+        ' inputmode="decimal" value="'+d.parts[i].target[k]+'" data-t="'+k+'" data-pi="'+i+'" aria-label="'+lab+'"></div>';
+    }
+    function blocoHtml(pt, i){
+      return '<div class="card" style="padding:13px;margin-bottom:10px">' +
+        '<div class="spread" style="margin-bottom:10px">' +
+          '<button class="cd-tipo" data-pick="'+i+'">' +
+            '<span class="ed-n">'+(pt.tipo || 'Escolher tipo')+'</span>' +
+            '<span class="ed-e">'+(pt.tipo ? 'toque para trocar' : 'obrigatório')+'</span></button>' +
+          (d.parts.length > 1
+            ? '<button class="ed-x" data-del="'+i+'" aria-label="Remover bloco">×</button>' : '') +
+        '</div>' +
+        '<div class="dow">' + WEEKDAYS.map(function(w, dow){
+            var on = pt.days.indexOf(dow) >= 0;
+            return '<button class="dow-b'+(on?' on':'')+'" data-d="'+dow+'" data-pi="'+i+'" style="'+
+              (on?'background:var(--cardio);border-color:var(--cardio);color:#fff':'')+'">'+w.charAt(0)+'</button>';
+          }).join('') + '</div>' +
+        '<div class="ed-grid">' + campo(i,'duration','min') + campo(i,'distance','km','0.1') +
+          campo(i,'incline','% inc','0.5') + campo(i,'level','nível') + '</div>' +
+        '<div class="ed-grid" style="grid-template-columns:1fr 1fr">' +
+          campo(i,'speed','km/h','0.1') + campo(i,'kcal','kcal') + '</div>' +
+      '</div>';
+    }
+
+    host.innerHTML =
       '<div class="scrim" id="scrimCD"></div>' +
       '<div class="sheet" role="dialog" aria-label="Protocolo de cardio">' +
         '<div class="grabber"></div>' +
         '<div class="spread"><h3>'+(d.id ? 'Editar protocolo' : 'Novo protocolo')+'</h3>' +
           '<button class="btn ghost sm" id="cdClose">Fechar</button></div>' +
-        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Nome</div>' +
-          '<input class="txt" id="cdName" type="text" value="'+d.name.replace(/"/g,'&quot;')+'" placeholder="nome do protocolo" aria-label="Nome"></div>' +
-        '<div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Modalidade</div>' +
-          '<input class="txt" id="cdMod" type="text" value="'+d.modality.replace(/"/g,'&quot;')+'" placeholder="esteira, bike, rua..." aria-label="Modalidade"></div>' +
-        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Dias da semana</div>' +
-          '<div class="dow" id="cdDow">' + WEEKDAYS.map(function(w, i){
-            return '<button class="dow-b'+(d.days.indexOf(i)>=0?' on':'')+'" data-d="'+i+'" style="'+
-              (d.days.indexOf(i)>=0?'background:var(--cardio);border-color:var(--cardio);color:#fff':'')+'">'+w.charAt(0)+'</button>';
-          }).join('') + '</div></div>' +
-        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Alvo</div>' +
-          '<div class="ed-grid">' + fld('duration','min') + fld('distance','km','0.1') +
-            fld('incline','% inc','0.5') + fld('level','nível') + '</div>' +
-          '<div class="ed-grid" style="grid-template-columns:1fr 1fr">' + fld('speed','km/h','0.1') + fld('kcal','kcal') + '</div>' +
-          '<p class="note" style="margin-top:8px">Preencha só o que importa. Um protocolo pode ter só calorias como alvo.</p></div>' +
-        '<div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Observação</div>' +
+        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Nome do protocolo</div>' +
+          '<input class="txt" id="cdName" type="text" value="'+d.name.replace(/"/g,'&quot;')+'" placeholder="Cardio da semana" aria-label="Nome"></div>' +
+        '<div class="eyebrow" style="margin:18px 0 8px">O que fazer em cada dia</div>' +
+        d.parts.map(blocoHtml).join('') +
+        '<button class="btn dashed" id="cdAdd">+ Outro tipo em outros dias</button>' +
+        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Observação</div>' +
           '<input class="txt" id="cdNote" type="text" value="'+d.note.replace(/"/g,'&quot;')+'" placeholder="opcional" aria-label="Observação"></div>' +
         '<div style="margin-top:20px"><button class="btn" id="cdSave" style="background:var(--cardio)">'+
           (d.id ? 'Salvar' : 'Criar protocolo')+'</button></div>' +
       '</div>';
     lockScroll(true);
+
     document.getElementById('scrimCD').addEventListener('click', closeCardioSheet);
     document.getElementById('cdClose').addEventListener('click', closeCardioSheet);
     document.getElementById('cdName').addEventListener('input', function(e){ d.name = e.target.value; });
-    document.getElementById('cdMod').addEventListener('input', function(e){ d.modality = e.target.value; });
     document.getElementById('cdNote').addEventListener('input', function(e){ d.note = e.target.value; });
-    bindAll(document.getElementById('cdDow'), '[data-d]', function(b){
-      var i = +b.getAttribute('data-d'), k = d.days.indexOf(i);
-      if (k >= 0) d.days.splice(k, 1); else d.days.push(i);
-      d.days.sort(); renderCardioEditor();
+
+    bindAll(host, '[data-pick]', function(b){
+      cdPick = +b.getAttribute('data-pick'); cdBusca = ''; renderCardioEditor();
     });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function(inp){
-      inp.addEventListener('input', function(){ d.target[inp.getAttribute('data-t')] = inp.value; });
+    bindAll(host, '[data-del]', function(b){
+      d.parts.splice(+b.getAttribute('data-del'), 1); renderCardioEditor();
     });
+    document.getElementById('cdAdd').addEventListener('click', function(){
+      d.parts.push({days:[], tipo:'', target:{duration:'',distance:'',incline:'',level:'',speed:'',kcal:''}});
+      cdPick = d.parts.length - 1; cdBusca = ''; renderCardioEditor();
+    });
+    bindAll(host, '.dow-b', function(b){
+      var dow = +b.getAttribute('data-d'), i = +b.getAttribute('data-pi');
+      var dias = d.parts[i].days, k = dias.indexOf(dow);
+      if (k >= 0) dias.splice(k, 1);
+      else {
+        /* um dia pertence a um bloco só */
+        d.parts.forEach(function(outro, j){
+          if (j === i) return;
+          var o = outro.days.indexOf(dow);
+          if (o >= 0) outro.days.splice(o, 1);
+        });
+        dias.push(dow); dias.sort();
+      }
+      renderCardioEditor();
+    });
+    Array.prototype.forEach.call(host.querySelectorAll('.ed-f input'), function(inp){
+      inp.addEventListener('input', function(){
+        d.parts[+inp.getAttribute('data-pi')].target[inp.getAttribute('data-t')] = inp.value;
+      });
+    });
+
     document.getElementById('cdSave').addEventListener('click', function(){
       if (!d.name.trim()){ document.getElementById('cdName').focus(); return; }
-      var tgt = {};
-      ['duration','distance','incline','level','speed','kcal'].forEach(function(k){
-        var v = parseFloat(d.target[k]);
-        if (!isNaN(v) && v > 0) tgt[k] = v;
+      var faltaTipo = d.parts.filter(function(pt){ return !tipoExiste(pt.tipo); }).length;
+      if (faltaTipo){ toast('Escolha o tipo de cada bloco', 'warn'); return; }
+      var semDia = d.parts.filter(function(pt){ return !pt.days.length; }).length;
+      if (semDia){ toast('Marque os dias de cada bloco', 'warn'); return; }
+
+      var parts = d.parts.map(function(pt){
+        var tgt = {};
+        ['duration','distance','incline','level','speed','kcal'].forEach(function(k){
+          var v = parseFloat(pt.target[k]);
+          if (!isNaN(v) && v > 0) tgt[k] = v;
+        });
+        return {days:pt.days.slice(), tipo:pt.tipo, target:tgt};
       });
+
       if (d.id){
-        var c = cardioById[d.id];
-        c.name = d.name.trim(); c.modality = d.modality.trim() || d.name.trim();
-        c.days = d.days.slice(); c.target = tgt; c.note = d.note.trim();
+        var c2 = cardioById[d.id];
+        c2.name = d.name.trim(); c2.note = d.note.trim(); c2.parts = parts;
+        c2.modality = parts[0].tipo; c2.days = diasDe(c2); c2.target = parts[0].target;
       } else {
-        CARDIOS.push({id:newId(), name:d.name.trim(),
-          modality: d.modality.trim() || d.name.trim(), archived:false,
-          days:d.days.slice(), target:tgt, note:d.note.trim()});
-        reindexCardios();
+        var novo = {id:newId(), name:d.name.trim(), archived:false, note:d.note.trim(),
+                    parts:parts, modality:parts[0].tipo, days:[], target:parts[0].target};
+        novo.days = diasDe(novo);
+        CARDIOS.push(novo);
       }
-      reindexCardios(); cdDraft = null;
-      closeCardioSheet();
+      reindexCardios(); cdDraft = null; cdPick = null;
+      touchState(); closeCardioSheet();
       toast('Protocolo salvo');
     });
   }
@@ -3179,15 +3404,12 @@
       activeCardios().forEach(function(c){
         L.push(c.name.toUpperCase());
         L.push(line);
-        L.push('  Modalidade   ' + c.modality);
-        var t = c.target;
-        if (t.duration) L.push('  Duração      ' + t.duration + ' min');
-        if (t.incline)  L.push('  Inclinação   ' + t.incline + '%');
-        if (t.speed)    L.push('  Velocidade   ' + fmt(t.speed,1) + ' km/h');
-        if (t.level)    L.push('  Nível        ' + t.level);
-        if (t.distance) L.push('  Distância    ' + fmt(t.distance,1) + ' km');
-        if (t.blocks)   L.push('  Blocos       ' + t.blocks);
-        if (c.note)     L.push('  Obs.         ' + c.note);
+        partsDe(c).forEach(function(pt){
+          L.push('  ' + daysLabel(pt.days).padEnd(12, ' ') + ' ' + (pt.tipo || '?'));
+          var a = alvoTexto(pt.target || {});
+          if (a) L.push('               ' + a);
+        });
+        if (c.note) L.push('  Obs.         ' + c.note);
         L.push('');
       });
     } else {
@@ -3282,14 +3504,15 @@
     if (kind === 'cardio'){
       return '<div class="a4">' + head('Protocolos de cardio') + '<div class="a4-body">' +
         activeCardios().map(function(c){
-          var rows = cardioTargetParts(c);
-          if (c.target.hr) rows.push('~'+c.target.hr+' bpm');
-          return '<div class="a4-sec"><div class="a4-tt"><h4>'+c.name+'</h4><span>'+daysLabel(c.days)+'</span></div>' +
-            '<div class="a4-row"><span class="a4-i">–</span>' +
-              '<span><span class="a4-n">'+c.modality+'</span>' +
-                '<span class="a4-e">'+(c.note || c.modality)+'</span></span>' +
-              '<span class="a4-s">'+(c.target.duration||'–')+' min</span></div>' +
-            '<div class="a4-tot">'+rows.join('  ·  ')+'</div></div>';
+          return '<div class="a4-sec"><div class="a4-tt"><h4>'+c.name+'</h4><span>'+daysLabel(diasDe(c))+'</span></div>' +
+            partsDe(c).map(function(pt, i){
+              var a = alvoTexto(pt.target || {});
+              return '<div class="a4-row"><span class="a4-i">'+String(i+1).padStart(2,'0')+'</span>' +
+                '<span><span class="a4-n">'+(pt.tipo || '?')+'</span>' +
+                  '<span class="a4-e">'+daysLabel(pt.days)+'</span></span>' +
+                '<span class="a4-s">'+(a || '–')+'</span></div>';
+            }).join('') +
+            (c.note ? '<div class="a4-tot">'+c.note+'</div>' : '') + '</div>';
         }).join('') + foot + '</div></div>';
     }
 

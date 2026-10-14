@@ -3,7 +3,7 @@
 const CACHE = 'ugym-v2';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
-  './supabase.js', './supabase.js', './supabase.js', './supabase.js', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'
+  './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
