@@ -88,7 +88,7 @@
   .app > main{
     flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
     -webkit-overflow-scrolling:touch;
-    padding-bottom:calc(84px + max(0px, env(safe-area-inset-bottom, 0px) - 16px));
+    padding-bottom:calc(84px + max(0px, env(safe-area-inset-bottom, 0px) - 26px));
     scrollbar-gutter:stable;
     -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 12px);
     mask-image:linear-gradient(to bottom, transparent 0, #000 12px);
@@ -281,7 +281,7 @@
   .field label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap}
 
   :root{padding-bottom:0}
-  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;gap:2px;padding:3px 10px;padding-bottom:calc(3px + max(0px, env(safe-area-inset-bottom, 0px) - 16px));background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;gap:2px;padding:5px 10px 2px;padding-bottom:calc(2px + max(0px, env(safe-area-inset-bottom, 0px) - 26px));background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
   .tabbar .inner{display:flex;gap:1px;width:100%;max-width:460px}
   .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 1px 2px;border-radius:10px;color:var(--dim);font-size:9.5px;font-weight:500;text-align:center;min-width:0;line-height:1.25}
   .tab svg{display:block}
@@ -2336,6 +2336,27 @@
         if (semAcento(CARDIO_TIPOS[i][1][j]) === a) return CARDIO_TIPOS[i][1][j];
     return TIPO_ANTIGO[a] || '';
   }
+  /* um protocolo é feito de blocos: cada bloco tem seus dias, seu tipo e seu alvo */
+  function partsDe(c){
+    if (c.parts && c.parts.length) return c.parts;
+    c.parts = [{days:(c.days||[]).slice(), tipo: c.modality || c.name, target: c.target || {}}];
+    return c.parts;
+  }
+  function diasDe(c){
+    var out = [];
+    partsDe(c).forEach(function(p){ (p.days||[]).forEach(function(d){ if (out.indexOf(d) < 0) out.push(d); }); });
+    return out.sort();
+  }
+  function parteDoDia(c, dow){
+    var ps = partsDe(c);
+    for (var i = 0; i < ps.length; i++) if ((ps[i].days||[]).indexOf(dow) >= 0) return ps[i];
+    return null;
+  }
+  function alvoDoDia(c, dow, chave){
+    var p = parteDoDia(c, dow);
+    return (p && p.target && p.target[chave]) || 0;
+  }
+
   function tipoExiste(nome){ return tipoOficial(nome) || null; }
   /* lista de tipos para escolher, com busca */
   function casaTipo(t, q){
