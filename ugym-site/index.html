@@ -406,11 +406,13 @@
   .rpe-b.lo.on{background:var(--muted);border-color:var(--muted)}
   .rpe-b.hi.on{background:var(--accent);border-color:var(--accent)}
   /* aderência ao planejado — só na faixa da aba Cardio */
-  .wk-day.ad-ok{background:color-mix(in srgb, var(--good) 34%, var(--surface-2))}
-  .wk-day.ad-quase{background:color-mix(in srgb, #C9A227 30%, var(--surface-2))}
-  .wk-day.ad-fora{background:color-mix(in srgb, #C9772A 30%, var(--surface-2))}
-  .wk-day.ad-extra{background:var(--surface-2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 55%, transparent)}
-  .wk-day.ad-nao{background:var(--surface-2);opacity:.5}
+  .wk-day.ad-ok{background:color-mix(in srgb, var(--good) 62%, var(--surface-2));color:var(--text);
+                box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--good) 85%, transparent)}
+  .wk-day.ad-quase,.wk-day.ad-fora,.wk-day.ad-extra{
+                background:color-mix(in srgb, var(--good) 26%, var(--surface-2));color:var(--text)}
+  .wk-day.ad-nao{background:var(--surface-2);opacity:.55}
+  .wk-day.ad-ok .wk-dot,.wk-day.ad-quase .wk-dot,.wk-day.ad-fora .wk-dot,.wk-day.ad-extra .wk-dot{
+                color:var(--text);font-size:13px;line-height:1}
   .meta-bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:9px}
   .meta-bar > i{display:block;height:100%;border-radius:99px;background:var(--cardio);transition:width .35s ease}
   .lg-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-size:11px;color:var(--muted)}
@@ -2651,12 +2653,7 @@
       '</div><div class="wk">'+weekStripHtml(off, mode)+'</div>' +
       (mode === 'treino'
         ? '<div class="note" style="margin-top:9px;text-align:center">Toque num dia vazio para marcar que treinou</div>'
-        : '<div class="lg-row" style="justify-content:center">' +
-            '<span><i style="background:color-mix(in srgb, var(--good) 34%, var(--surface-2))"></i>no alvo</span>' +
-            '<span><i style="background:color-mix(in srgb, #C9A227 30%, var(--surface-2))"></i>perto</span>' +
-            '<span><i style="background:color-mix(in srgb, #C9772A 30%, var(--surface-2))"></i>longe</span>' +
-            '<span><i style="background:var(--surface-2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 55%, transparent)"></i>sem plano</span>' +
-          '</div>') + '</div>';
+        : '') + '</div>';
   }
 
   function bindWeekCard(id, get, set, rerender, mode){
