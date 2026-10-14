@@ -1,0 +1,188 @@
+/* ------------------------------------------------------------------
+   As páginas de política.
+
+   Elas são o oposto do resto do site: nada de animação, nada de cor
+   chamando atenção, medida de leitura curta e um sumário que deixa achar
+   a parte que interessa sem rolar a página inteira. Quem abre uma
+   política quer conferir um ponto, e não passear.
+-------------------------------------------------------------------*/
+
+.legal {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--tx-1);
+  padding-bottom: 80px;
+}
+
+.legal__topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--canvas) 90%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.legal__topo .wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 62px;
+  flex-wrap: wrap;
+}
+.legal__voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--tx-2);
+  font-size: 13.5px;
+}
+.legal__voltar:hover { color: var(--tx-1); }
+/* Eram três abas. Virou uma página só, e o que resta à direita é um
+   rótulo: diz onde a pessoa está, sem fingir que há para onde trocar. */
+.legal__aqui {
+  margin-left: auto;
+  font-family: var(--f-mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tx-3);
+  white-space: nowrap;
+}
+
+.legal .wrap { max-width: 860px; margin: 0 auto; padding-inline: 20px; }
+
+.legal__cab { padding-top: 46px; }
+.legal__k {
+  font-family: var(--f-mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pos);
+}
+.legal__t {
+  font-family: var(--f-display);
+  font-size: clamp(30px, 6vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  margin: 12px 0 0;
+}
+.legal__data {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--tx-3);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* O resumo em uma frase, antes de qualquer juridiquês. */
+.legal__tldr {
+  margin-top: 26px;
+  border-left: 3px solid var(--pos);
+  background: var(--paper);
+  border-radius: 0 14px 14px 0;
+  padding: 18px 20px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--tx-1);
+}
+
+.legal__sumario {
+  margin-top: 30px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.legal__sumario h2 {
+  font-family: var(--f-mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tx-3);
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.legal__sumario ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 5px;
+  font-size: 14.5px;
+}
+.legal__sumario a { color: var(--tx-2); }
+.legal__sumario a:hover { color: var(--pos); }
+
+.legal__corpo { margin-top: 12px; }
+.legal__corpo section { margin-top: 40px; scroll-margin-top: 80px; }
+.legal__corpo h2 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  margin: 0 0 12px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.legal__n {
+  font-family: var(--f-mono, "IBM Plex Mono", monospace);
+  font-size: 13px;
+  color: var(--pos);
+  flex: none;
+}
+.legal__corpo h3 {
+  font-size: 15.5px;
+  font-weight: 600;
+  margin: 22px 0 8px;
+}
+.legal__corpo p,
+.legal__corpo li {
+  font-size: 15.5px;
+  line-height: 1.68;
+  color: var(--tx-2);
+}
+.legal__corpo p { margin: 0 0 12px; max-width: 68ch; }
+.legal__corpo strong { color: var(--tx-1); font-weight: 600; }
+.legal__corpo ul { margin: 0 0 12px; padding-left: 20px; display: grid; gap: 7px; max-width: 68ch; }
+.legal__corpo a { color: var(--pos); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Uma linha por dado, porque lista de bolinha some do olho e tabela de
+   verdade não cabe em celular. */
+.legal__linhas { border-top: 1px solid var(--line); margin: 14px 0 18px; }
+.legal__linha {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.legal__linha dt { font-size: 15px; font-weight: 600; color: var(--tx-1); }
+.legal__linha dd { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--tx-2); }
+@media (min-width: 680px) {
+  .legal__linha { grid-template-columns: 240px 1fr; gap: 0 22px; align-items: baseline; }
+}
+
+.legal__nota {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 18px 0;
+}
+.legal__nota p:last-child { margin-bottom: 0; }
+.legal__nota--atencao { border-color: color-mix(in srgb, var(--ambar, #9a6a12) 45%, var(--line)); }
+
+.legal__pe {
+  margin-top: 56px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  color: var(--tx-3);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.legal__pe a { color: var(--tx-2); }
+.legal__pe a:hover { color: var(--pos); }

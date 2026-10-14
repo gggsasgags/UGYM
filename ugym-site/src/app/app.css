@@ -1,0 +1,1134 @@
+/* ------------------------------------------------------------------
+   Casca do aplicativo.
+
+   No celular instalado na tela inicial a página ocupa a tela toda, por
+   baixo da barra de status e do indicador de gesto. Por isso o respiro
+   do topo vem de env(safe-area-inset-top): sem ele o cabeçalho fica
+   embaixo do relógio do sistema e não dá para tocar.
+
+   E nada aqui pode deslizar de lado. O que fazia a tela parecer solta
+   era o fundo com background-attachment: fixed, que o iOS repinta fora
+   de hora; agora o fundo é uma camada própria, presa atrás de tudo.
+-------------------------------------------------------------------*/
+.shell {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  /* trava o arrasto horizontal de borracha do iOS */
+  overscroll-behavior-x: none;
+  background: var(--canvas);
+}
+.shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 420px at 50% -40px, rgba(18, 251, 61, 0.1), transparent 70%),
+    linear-gradient(180deg, #f1f7f3 0, var(--canvas) 420px);
+}
+
+/* usado na gaveta lateral */
+.shell__avatar {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--canvas);
+  font-family: var(--f-display);
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px rgba(10, 127, 44, 0.25);
+}
+.shell__avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.menu__catch { position: fixed; inset: 0; z-index: 38; cursor: default; }
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 238px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--sh-2);
+  overflow: hidden;
+  z-index: 40;
+}
+.menu__head {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.menu__head span { color: var(--tx-2); font-size: 12px; word-break: break-all; }
+.menu__i {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  text-align: left;
+  color: var(--tx-1);
+}
+.menu__i:hover { background: var(--pos-soft); color: var(--pos); }
+.menu__i--out { border-top: 1px solid var(--line); }
+.menu__i--out:hover { background: var(--neg-soft); color: var(--neg); }
+
+.shell__stage { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.shell__stage > .scr { flex: 1; background: transparent; }
+
+/* ---------------- abas fixas embaixo ---------------- */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 46;
+  padding: 0 0 env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: saturate(1.5) blur(16px);
+  border-top: 1px solid var(--line);
+}
+.tabbar__in {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 7px 4px;
+  max-width: 520px;
+  margin-inline: auto;
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--tx-3);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 5px 0;
+  border-radius: 12px;
+  transition: color 0.16s, background 0.16s;
+}
+.tab[aria-current="page"] { color: var(--pos); font-weight: 600; }
+
+@media (min-width: 900px) {
+  .tabbar {
+    left: 50%;
+    right: auto;
+    bottom: 18px;
+    transform: translateX(-50%);
+    width: max-content;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: 0 12px 40px -14px rgba(11, 14, 12, 0.3);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0;
+  }
+  .tabbar__in { grid-template-columns: repeat(4, auto); gap: 4px; padding: 6px; }
+  .tab {
+    flex-direction: row;
+    gap: 8px;
+    font-size: 13.5px;
+    padding: 9px 18px;
+    border-radius: 999px;
+  }
+  .tab[aria-current="page"] { background: var(--ink); color: var(--canvas); }
+  .tab:not([aria-current="page"]):hover { background: var(--canvas-2); color: var(--tx-1); }
+}
+
+/* ---------------- folhas modais ---------------- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  /* Centralizada em qualquer tela, como a caixa de confirmação. Colada
+     embaixo, uma folha curta como a do perfil ficava largada no pé do
+     celular com meio metro de vazio em cima. */
+  place-items: center;
+  padding:
+    calc(12px + env(safe-area-inset-top, 0px))
+    12px
+    calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+.sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 14, 10, 0.5);
+  backdrop-filter: blur(3px);
+  animation: fade 0.2s ease;
+}
+
+.sheet__panel {
+  position: relative;
+  width: min(470px, 100%);
+  background: var(--paper);
+  border-radius: 22px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--sh-3);
+  animation: rise 0.26s cubic-bezier(0.2, 0.8, 0.3, 1);
+  /* uma folha cheia rola por dentro em vez de empurrar a tela */
+  max-height: calc(
+    100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+  );
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.sheet__panel--wide { width: min(640px, 100%); }
+
+.sheet__head { display: flex; align-items: center; justify-content: space-between; }
+.sheet__head h2 {
+  font-size: 19px;
+  font-family: var(--f-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.sheet__acts { display: flex; gap: 10px; }
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+.sheet__danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--neg);
+  padding: 6px;
+}
+.sheet__danger:hover { text-decoration: underline; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > span { font-size: 12.5px; color: var(--tx-2); font-weight: 500; }
+.field__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.field input,
+.field select {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  padding: 0 13px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+.field input:focus,
+.field select:focus {
+  border-color: var(--pos);
+  box-shadow: 0 0 0 3px rgba(10, 127, 44, 0.12);
+}
+.field input:disabled { background: var(--canvas); color: var(--tx-3); }
+.field2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ---------------- campo de valor ---------------- */
+/* O valor continua sendo o primeiro campo e o que recebe o foco sozinho,
+   mas isso já basta para ele mandar na tela: a fonte de display em corpo
+   grande destoava do resto do aplicativo. Aqui ele veste a mesma roupa dos
+   outros campos, e só guarda os números de largura fixa, que é o que
+   impede o valor de dançar enquanto se digita. O "R$" fica fora do campo:
+   é rótulo, não algo que se apague sem querer. */
+.valor {
+  display: flex; align-items: center; gap: 8px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  padding: 0 13px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.valor:focus-within { border-color: var(--pos); box-shadow: 0 0 0 3px rgba(10, 127, 44, 0.12); }
+.valor__rs {
+  font-size: 15px; font-weight: 500; color: var(--tx-2); flex: none;
+}
+.field--valor input {
+  height: auto; border: 0; background: none; padding: 0; border-radius: 0;
+  font-size: 15px; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.field--valor input:focus { border: 0; box-shadow: none; }
+.field--valor input::placeholder { color: var(--tx-3); font-weight: 400; }
+.field__err { font-size: 12.5px; color: var(--neg); }
+.field__hint { font-size: 12px; color: var(--tx-2); line-height: 1.5; margin-top: 8px; }
+
+/* ---------- repetição e parcelas ---------- */
+/* A caixinha de "parar em algum mês" e o aviso de que o app leu a
+   parcela escrita na descrição. Os dois nasceram em 13/10/2026, quando
+   o parcelamento deixou de perguntar "quantas vezes" e passou a
+   perguntar "até quando". */
+.repet__ate {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--tx-2);
+  cursor: pointer;
+}
+.repet__ate input { width: 16px; height: 16px; accent-color: var(--pos); margin: 0; }
+
+.lido {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--pos-soft);
+  border: 1px solid var(--line);
+  color: var(--tx-2);
+}
+.lido svg { flex: none; margin-top: 2px; color: var(--pos); }
+.lido p { font-size: 12.5px; line-height: 1.5; }
+.lido b { color: var(--tx); }
+.lido button {
+  margin-left: 6px;
+  font-size: 12.5px;
+  color: var(--pos);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.minilink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--pos);
+}
+.minilink:hover { text-decoration: underline; }
+
+/* ---------------- apagar a conta ---------------- */
+/* Fica separado do resto por uma linha e por espaço: é a única coisa
+   nesta folha que destrói dado, e não pode dividir bloco com "salvar". */
+.perigo { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--line); }
+.perigo__abrir {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--tx-3); cursor: pointer;
+  background: none; border: 0; padding: 6px 0;
+}
+.perigo__abrir:hover { color: var(--neg); }
+.perigo__abrir:focus-visible { outline: 2px solid var(--neg); outline-offset: 3px; border-radius: 6px; }
+
+.perigo__cx {
+  border: 1px solid color-mix(in srgb, var(--neg) 40%, var(--line));
+  background: var(--neg-soft);
+  border-radius: 14px; padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.perigo__t {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 600; margin: 0; color: var(--neg);
+}
+.perigo__d { font-size: 13.5px; line-height: 1.55; color: var(--tx-2); margin: 0; max-width: 52ch; }
+.perigo__baixar { align-self: flex-start; }
+.perigo__campo { margin-top: 4px; }
+.perigo__campo b { color: var(--tx-1); letter-spacing: 0.06em; }
+.perigo__acoes { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; flex-wrap: wrap; }
+.perigo__ok { background: var(--neg); color: #fff; border-color: var(--neg); }
+.perigo__ok:disabled { opacity: 0.45; cursor: not-allowed; }
+.perigo__ok:not(:disabled):hover { filter: brightness(1.06); }
+
+/* ---------------- categoria em linha ---------------- */
+.inlinecat {
+  border: 1px solid var(--line);
+  background: var(--pos-soft);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inlinecat__row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.inlinecat__sair {
+  width: 40px; height: 40px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 11px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  color: var(--tx-2);
+  cursor: pointer;
+}
+.inlinecat__sair:hover { color: var(--tx-1); border-color: var(--tx-3); }
+.inlinecat__sair:focus-visible { outline: 2px solid var(--pos); outline-offset: 2px; }
+.inlinecat__emoji {
+  width: 52px;
+  flex: none;
+  height: 40px;
+  text-align: center;
+  font-size: 19px;
+  border-radius: 11px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+}
+.inlinecat__name {
+  flex: 1 1 140px;
+  min-width: 0;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  padding: 0 12px;
+  font-size: 14.5px;
+}
+.inlinecat select {
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  padding: 0 10px;
+  font-size: 13.5px;
+}
+
+.emojis { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 34px era alvo pequeno para dedo, e foi onde a namorada do Diego errou
+   duas vezes em 13/10/2026. 40 é o mínimo confortável. */
+.emojis__i {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  border-radius: 11px;
+  background: var(--paper);
+  border: 1px solid transparent;
+  transition: transform .12s ease, background .12s ease;
+}
+.emojis__i:hover { border-color: var(--line-2); }
+/* O escolhido tem que sobrar no meio de cem. Antes era uma borda fina e
+   um halo de 15% de opacidade, que ninguém via. */
+.emojis__i[aria-pressed="true"] {
+  background: var(--pos);
+  border-color: var(--pos);
+  box-shadow: 0 0 0 3px var(--pos-soft);
+  transform: scale(1.08);
+}
+
+.catlist { display: flex; flex-direction: column; }
+.catlist__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.catlist__row:last-child { border-bottom: 0; }
+.catlist__txt { display: flex; flex-direction: column; flex: 1; min-width: 0; font-size: 14px; }
+.catlist__row--edit { gap: 8px; }
+.scr__tool:disabled { opacity: 0.3; cursor: default; }
+
+/* ---------------- perfil ---------------- */
+.profile { display: flex; align-items: center; gap: 16px; }
+.profile__av {
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex: none;
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 4px rgba(10, 127, 44, 0.3);
+}
+.profile__av--letter {
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--canvas);
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 600;
+}
+.profile__acts { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+
+/* ---------------- escolher blocos ---------------- */
+.picklist { display: flex; flex-direction: column; gap: 6px; }
+.picklist__h { color: var(--tx-3); margin-top: 6px; }
+.picklist__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--paper);
+  text-align: left;
+  width: 100%;
+}
+.picklist__row--add { border-style: dashed; }
+.picklist__row--add:hover { border-color: var(--pos); background: var(--pos-soft); }
+.picklist__txt { display: flex; flex-direction: column; flex: 1; min-width: 0; font-size: 13.5px; gap: 2px; }
+
+/* ---------------- importação ---------------- */
+.preview {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 10px 12px;
+  background: var(--canvas);
+}
+.preview__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 12.5px;
+}
+.preview__d { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------------- cartão de compartilhamento ---------------- */
+.sharewrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  width: min(420px, 100%);
+}
+.share {
+  position: relative;
+  width: 100%;
+  border-radius: 22px;
+  padding: 22px;
+  overflow: hidden;
+  background: linear-gradient(155deg, #16271d 0%, #0b0e0c 58%);
+  color: #fff;
+  box-shadow: var(--sh-3);
+  animation: rise 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.share__glow {
+  position: absolute;
+  inset: -30% -20% auto 30%;
+  height: 260px;
+  background: radial-gradient(circle at 50% 0%, rgba(18, 251, 61, 0.3), transparent 65%);
+  pointer-events: none;
+}
+.share__top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.share__at {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--acid);
+}
+.share__who { position: relative; display: flex; align-items: center; gap: 12px; margin-top: 22px; }
+.share__av {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex: none;
+  box-shadow: 0 0 0 2px rgba(18, 251, 61, 0.4);
+}
+.share__av--letter {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  font-family: var(--f-display);
+  font-size: 19px;
+  font-weight: 600;
+}
+.share__id { display: flex; flex-direction: column; min-width: 0; }
+.share__id strong { font-size: 15.5px; letter-spacing: -0.01em; }
+.share__id span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.share__score {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 20px;
+}
+.share__n {
+  font-family: var(--f-display);
+  font-size: 58px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+.share__meta { display: flex; flex-direction: column; gap: 2px; }
+.share__tier { font-size: 15px; font-weight: 600; color: var(--acid); }
+.share__m { font-size: 12.5px; color: rgba(255, 255, 255, 0.5); }
+.share__foot {
+  position: relative;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+.share__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.share__close:hover { background: rgba(255, 255, 255, 0.2); }
+
+@keyframes rise {
+  from { transform: translateY(18px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ============================================================
+   Modo escuro do aplicativo
+   ============================================================ */
+.shell[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #141a17;
+  --canvas: #0d1110;
+  --canvas-2: #1d2521;
+  --line: #232c27;
+  --line-2: #34403a;
+  --tx-1: #eef3f0;
+  --tx-2: #9ba69f;
+  --tx-3: #6f7b74;
+  --ink: #e9efec;
+  --ink-3: #d2dcd6;
+  --ink-4: #b7c3bc;
+  --pos: #3fd469;
+  --pos-soft: #16261b;
+  --neg: #f0776e;
+  --neg-soft: #2a1715;
+  --bar-2: #7d8b84;
+  --fix: #c3cfc9;
+  --var: #6b7671;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sh-2: 0 2px 8px rgba(0, 0, 0, 0.4), 0 14px 30px -14px rgba(0, 0, 0, 0.6);
+  --sh-3: 0 24px 70px -24px rgba(0, 0, 0, 0.8);
+  --bar: rgba(16, 21, 19, 0.84);
+  --shell-a: #10231a;
+  --shell-b: #0d1110;
+  --glow: rgba(18, 251, 61, 0.09);
+  background: var(--canvas);
+  color: var(--tx-1);
+}
+.shell[data-theme="dark"]::before {
+  background:
+    radial-gradient(120% 420px at 50% -40px, var(--glow), transparent 70%),
+    linear-gradient(180deg, var(--shell-a) 0, var(--shell-b) 420px);
+}
+.shell[data-theme="dark"] .tabbar { background: var(--bar); }
+.shell[data-theme="dark"] .hero { border: 1px solid rgba(255, 255, 255, 0.07); }
+.shell[data-theme="dark"] .shell__avatar { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px rgba(63, 212, 105, 0.3); }
+.shell[data-theme="dark"] .hello__av { box-shadow: 0 0 0 2px var(--canvas), 0 0 0 3px rgba(63, 212, 105, 0.3); }
+.shell[data-theme="dark"] .cal__day[data-strong="true"] { color: #06140b; }
+.shell[data-theme="dark"] .grid td[data-strong="true"] { color: #06140b; }
+/* O cartão da média de despesas tinha fundo avermelhado aqui no escuro.
+   Saiu junto com os outros fundos tingidos do resumo: o número já é
+   vermelho, e a caixa colorida atrás só engrossava a tela. */
+
+/* ============================================================
+   Menu lateral
+   ============================================================ */
+.drawer { position: fixed; inset: 0; z-index: 70; }
+.drawer__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 14, 10, 0.5);
+  backdrop-filter: blur(3px);
+  animation: fade 0.2s ease;
+}
+.drawer__panel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: min(320px, 88vw);
+  background: var(--paper);
+  border-right: 1px solid var(--line);
+  box-shadow: var(--sh-3);
+  /* A gaveta vai de ponta a ponta da tela, então o topo dela também cai
+     por baixo da barra de status no celular instalado. */
+  padding:
+    calc(16px + env(safe-area-inset-top, 0px))
+    14px
+    calc(20px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  animation: slidein 0.26s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+@keyframes slidein {
+  from { transform: translateX(-18px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+.drawer__me { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.drawer__id { display: flex; flex-direction: column; min-width: 0; font-size: 14px; }
+.drawer__id span { color: var(--tx-2); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+.drawer__h { color: var(--tx-3); padding: 12px 10px 4px; }
+
+.drawer__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 10px;
+  border-radius: 13px;
+  color: var(--tx-1);
+  transition: background 0.15s;
+}
+.drawer__row:hover { background: var(--canvas); }
+.drawer__row > svg { flex: none; color: var(--tx-2); }
+.drawer__txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.drawer__txt strong { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.drawer__txt span { font-size: 12px; color: var(--tx-2); line-height: 1.4; }
+.drawer__row--plain { padding-block: 11px; }
+.drawer__row--out { margin-top: auto; color: var(--neg); }
+.drawer__row--out > svg { color: var(--neg); }
+.drawer__row--out:hover { background: var(--neg-soft); }
+
+.switch {
+  width: 42px;
+  height: 25px;
+  border-radius: 999px;
+  background: var(--line-2);
+  position: relative;
+  flex: none;
+  transition: background 0.2s;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.switch[data-on="true"] { background: var(--pos); }
+.switch[data-on="true"]::after { transform: translateX(17px); }
+
+/* ============================================================
+   Calculadora flutuante
+   ============================================================ */
+.calcfab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  z-index: 48;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--canvas);
+  box-shadow: 0 10px 26px -8px rgba(11, 14, 12, 0.5);
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.calcfab:hover { transform: translateY(-2px) scale(1.04); }
+
+.calc {
+  position: fixed;
+  right: 14px;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  z-index: 55;
+  width: 232px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--sh-3);
+  overflow: hidden;
+  animation: rise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+@media (min-width: 900px) {
+  .calc { width: 300px; right: 24px; bottom: 100px; }
+  .calcfab { right: 24px; bottom: 104px; }
+}
+
+.calc__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--canvas);
+}
+.calc__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.calc__title svg { color: var(--pos); }
+.calc__bar button { color: var(--tx-3); display: grid; place-items: center; }
+.calc__bar button:hover { color: var(--tx-1); }
+
+.calc__out {
+  padding: 14px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.calc__memo { font-size: 11.5px; color: var(--tx-3); min-height: 15px; }
+.calc__shown {
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  word-break: break-all;
+}
+@media (min-width: 900px) { .calc__shown { font-size: 36px; } }
+
+.calc__pad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 0 10px 12px;
+}
+.calc__k {
+  height: 42px;
+  border-radius: 12px;
+  background: var(--canvas);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tx-1);
+  transition: background 0.14s, transform 0.1s;
+}
+@media (min-width: 900px) { .calc__k { height: 50px; font-size: 17px; } }
+.calc__k:hover { background: var(--canvas-2); }
+.calc__k--op:hover { background: var(--pos); color: var(--canvas); }
+.calc__k--eq:hover { background: var(--pos); filter: brightness(1.12); }
+.calc__k:active { transform: scale(0.96); }
+.calc__k--op { background: var(--pos-soft); color: var(--pos); }
+.calc__k--clear { color: var(--neg); }
+.calc__k--eq { background: var(--pos); color: var(--canvas); }
+.calc__k--wide { grid-column: span 2; }
+
+/* ---------------- aviso de falha ao salvar ---------------- */
+/* Só aparece quando uma gravação no servidor não deu certo. O estado
+   local já voltou ao que era, então o aviso diz a verdade: aquilo não
+   foi salvo. Fica acima da barra de abas e some ao ser fechado. */
+.notice {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  z-index: 70;
+  width: min(440px, calc(100vw - 28px));
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 14px;
+  background: var(--neg-soft);
+  border: 1px solid var(--neg);
+  color: var(--neg);
+  font-size: 13.5px;
+  line-height: 1.45;
+  box-shadow: var(--sh-2);
+  animation: rise 0.22s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.notice svg { flex: none; margin-top: 1px; }
+.notice span { flex: 1; min-width: 0; }
+.notice button {
+  flex: none;
+  color: inherit;
+  opacity: 0.7;
+  display: grid;
+  place-items: center;
+}
+.notice button:hover { opacity: 1; }
+
+@media (min-width: 900px) {
+  .notice { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ---------------- pergunta antes de apagar ---------------- */
+.confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    20px
+    calc(20px + env(safe-area-inset-bottom, 0px));
+}
+.confirm__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 11, 9, 0.5);
+  backdrop-filter: blur(2px);
+}
+.confirm__box {
+  position: relative;
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 60px rgba(8, 11, 9, 0.28);
+}
+.confirm__selo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--neg, #dc2626);
+}
+.confirm__box h2 { font-size: 18px; letter-spacing: -0.02em; }
+.confirm__box p { font-size: 14px; line-height: 1.55; color: var(--tx-2); }
+.confirm__acts { display: flex; gap: 10px; margin-top: 6px; }
+.confirm__acts .btn { flex: 1; justify-content: center; }
+.btn--danger {
+  background: #dc2626;
+  color: #fff;
+  border: 1px solid #dc2626;
+  gap: 8px;
+}
+.btn--danger:hover { background: #b91c1c; border-color: #b91c1c; }
+@media (max-width: 420px) {
+  .confirm__acts { flex-direction: column-reverse; }
+}
+
+/* ---------------- conferir as colunas do extrato ---------------- */
+.colmap__campos { display: grid; gap: 12px; }
+@media (min-width: 520px) { .colmap__campos { grid-template-columns: 1fr 1fr; } }
+.colmap__opc { color: var(--tx-3); font-weight: 400; }
+
+.colmap__chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.colmap__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  background: var(--paper);
+  font-size: 12.5px;
+  color: var(--tx-2);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.16s, background 0.16s, color 0.16s, opacity 0.16s;
+}
+.colmap__chip svg { flex: none; color: var(--tx-3); }
+.colmap__chip[data-on] { border-color: var(--ink); color: var(--tx-1); }
+.colmap__chip[data-on] svg { color: var(--pos); }
+.colmap__chip[data-off] { opacity: 0.45; text-decoration: line-through; }
+
+.colmap__previa {
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 12px 13px;
+  background: var(--paper);
+}
+.colmap__previa__h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.colmap__previa__h strong { font-size: 13.5px; letter-spacing: -0.01em; }
+.colmap__previa .preview { margin: 0; }
+
+/* ---------------- escolher os meses antes de exportar ---------------- */
+.exp__topo { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.exp__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+.exp__mes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 13px;
+  background: var(--paper);
+  transition: border-color 0.16s, background 0.16s;
+}
+.exp__mes[aria-pressed="true"] { border-color: var(--pos); background: var(--pos-soft); }
+.exp__marca {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  border: 1.5px solid var(--line-2);
+  color: var(--canvas);
+}
+.exp__mes[aria-pressed="true"] .exp__marca { background: var(--pos); border-color: var(--pos); }
+.exp__id { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.exp__id strong { font-size: 14.5px; letter-spacing: -0.01em; }
+.exp__id span { font-size: 12px; color: var(--tx-3); }
+.exp__val { font-size: 13.5px; color: var(--tx-2); flex: none; }
+
+/* ---------- passo a passo de instalação ---------- */
+
+.passos { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.passos__i { display: flex; gap: 11px; align-items: flex-start; font-size: 14px; line-height: 1.5; }
+.passos__n {
+  flex: none;
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: var(--pos-soft);
+  color: var(--pos);
+  font-size: 12px; font-weight: 600;
+  margin-top: 1px;
+}
+
+/* ---------- escolher emoji da categoria ---------- */
+/* A prévia do emoji, que antes não existia: havia só um campo de texto
+   com o emoji dentro, e ele lia como "digite aqui", não como "é este que
+   você escolheu". */
+.emojipick__atual {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+}
+.emojipick__bolha {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  border-radius: 50%;
+  background: var(--pos-soft);
+  border: 2px solid var(--pos);
+  animation: emojipulso .28s ease;
+}
+@keyframes emojipulso {
+  from { transform: scale(.72); }
+  60%  { transform: scale(1.1); }
+  to   { transform: scale(1); }
+}
+.emojipick__legenda { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.emojipick__legenda b { font-size: 12px; color: var(--tx-2); font-weight: 500; }
+.emojipick__legenda > span {
+  font-size: 14.5px;
+  color: var(--tx);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-reduced-motion: reduce) {
+  .emojipick__bolha { animation: none; }
+  .emojis__i { transition: none; }
+}
+
+.emojipick { display: flex; flex-direction: column; gap: 10px; }
+.emojipick__busca {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 11px;
+  background: var(--paper);
+  color: var(--tx-3);
+}
+.emojipick__busca:focus-within { border-color: var(--pos); }
+.emojipick__busca input {
+  flex: 1; min-width: 0;
+  border: 0; background: none; color: var(--tx-1);
+  font: inherit; font-size: 13.5px;
+}
+.emojipick__busca input:focus { outline: none; }
+.emojipick__busca button { display: grid; place-items: center; color: var(--tx-3); }
+
+/* altura limitada: a lista rola por dentro e o botão de salvar não é
+   empurrado para fora da folha */
+.emojipick__rol {
+  max-height: 210px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 12px;
+  padding-right: 2px;
+}
+.emojipick__g { display: flex; flex-direction: column; gap: 6px; }
+.emojipick__h {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tx-3);
+}
+
+/* ---------- triagem do extrato ---------- */
+/* A conferência virou três blocos: o que entra, o que fica de fora e o
+   que ainda precisa de decisão. O bloco da dúvida é o único com cor,
+   porque é o único que pede ação. */
+.bloco { margin-top: 18px; }
+.bloco__t {
+  display: block; color: var(--tx-3); margin-bottom: 6px;
+}
+.bloco--duvida {
+  border: 1px solid var(--line-2, var(--line));
+  border-left: 3px solid var(--warn, #e8b04a);
+  border-radius: 12px; padding: 14px 16px; background: var(--canvas);
+}
+.duvida { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.duvida:last-of-type { border-bottom: 0; }
+.duvida__acoes { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 8px; }
+.preview__m {
+  display: block; color: var(--tx-3); font-size: 12.5px; margin-top: 2px;
+}

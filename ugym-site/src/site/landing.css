@@ -1,0 +1,913 @@
+/* ============================================================
+   Site institucional do Gastô
+   ============================================================ */
+
+/* A base da página é escura: os dois atos escuros são a maioria, e o ato
+   claro pinta o próprio fundo. Base clara vazava por qualquer fresta. */
+.site { background: var(--ink); overflow-x: clip; }
+
+/* rastro verde que segue o cursor nas faixas escuras */
+.glowable { position: relative; isolation: isolate; }
+.glowable > .glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--glow, 0);
+  transition: opacity 0.45s ease;
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(18, 251, 61, 0.15),
+    rgba(18, 251, 61, 0.05) 42%,
+    transparent 68%
+  );
+}
+.glowable > .wrap,
+.glowable > .nav__in { position: relative; z-index: 1; }
+
+@media (hover: none) {
+  .glowable > .glow { display: none; }
+}
+
+/* ---------------- barra de navegação ---------------- */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(11, 14, 12, 0.94);
+  backdrop-filter: saturate(1.4) blur(18px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.nav__in {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.nav__links {
+  display: none;
+  gap: 26px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.66);
+}
+@media (min-width: 900px) { .nav__links { display: flex; } }
+.nav__links a { transition: color 0.16s; }
+.nav__links a:hover { color: var(--acid); }
+.nav__cta { display: flex; align-items: center; gap: 10px; }
+.nav__login {
+  display: none;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+@media (min-width: 560px) { .nav__login { display: inline; } }
+.nav__login:hover { color: #fff; }
+
+/* ---------------- herói ---------------- */
+.hero-s {
+  background: var(--ink);
+  color: #fff;
+  overflow: hidden;
+  padding-block: clamp(44px, 5.5vw, 72px);
+}
+.hero-s__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-s__bg::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto 30%;
+  height: 620px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(18, 251, 61, 0.16), transparent 62%);
+}
+.hero-s__bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at 50% 20%, #000 20%, transparent 78%);
+}
+
+.hero-s__grid {
+  display: grid;
+  gap: 40px;
+  align-items: center;
+}
+@media (min-width: 940px) {
+  .hero-s__grid { grid-template-columns: 1.08fr 0.92fr; gap: 20px; }
+}
+
+.hero-s__copy { max-width: 620px; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--acid);
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--acid);
+}
+
+.hero-s h1 {
+  font-size: clamp(38px, 6.2vw, 68px);
+  line-height: 0.98;
+  letter-spacing: -0.042em;
+  margin-top: 20px;
+}
+.hero-s h1 em { font-style: normal; color: var(--acid); }
+
+.hero-s__sub {
+  margin-top: 20px;
+  font-size: clamp(16px, 1.5vw, 18.5px);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 52ch;
+}
+
+.hero-s__acts { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.hero-s__acts .btn--ghost { border-color: rgba(255, 255, 255, 0.24); color: #fff; }
+.hero-s__acts .btn--ghost:hover { border-color: var(--acid); color: var(--acid); background: rgba(18, 251, 61, 0.06); }
+
+.hero-s__fine {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.48);
+}
+.hero-s__fine span { display: inline-flex; align-items: center; gap: 7px; }
+.hero-s__fine i { width: 4px; height: 4px; border-radius: 999px; background: var(--acid); display: block; }
+
+.hero-s__stage { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.hero-s__phone { transform-origin: center; }
+
+/* ---------------- faixa de fatos ---------------- */
+.facts {
+  /* esta faixa fica entre o herói escuro e a areia escura. Clara, ela cortava
+     a página no meio e parecia outro site. */
+  background: var(--ink);
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+}
+.facts__in { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .facts__in { grid-template-columns: repeat(3, 1fr); } }
+.fact { padding: 26px 0; border-bottom: 1px solid var(--line); }
+.fact:last-child { border-bottom: 0; }
+@media (min-width: 720px) {
+  .fact { padding: 30px 28px; border-bottom: 0; border-left: 1px solid var(--line); }
+  .fact:first-child { border-left: 0; padding-left: 0; }
+  .fact:last-child { padding-right: 0; }
+}
+.fact__k {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.fact__v { margin-top: 8px; font-size: 14.5px; color: var(--tx-2); max-width: 30ch; }
+
+/* ---------------- seções ---------------- */
+.sec { padding-block: clamp(64px, 9vw, 120px); }
+/* O ato claro do site. O branco frio brigava com a areia e com os posts;
+   o creme tem a mesma temperatura dos dois. Os tokens são redefinidos aqui
+   dentro, do mesmo jeito que .on-ink faz no escuro, então cartão, borda e
+   texto se ajustam sozinhos sem eu caçar cor por cor. */
+.sec--paper {
+  --paper: #fbf6ec;
+  --canvas: #ece4d5;
+  --canvas-2: #e3dbca;
+  --line: #e0d8c6;
+  --line-2: #ccc2ac;
+  --tx-1: #1b1a17;
+  --tx-2: #56514a;
+  --tx-3: #8b8479;
+  --pos-soft: #e7efdf;
+  background: #f3ece0;
+  border-block: 1px solid var(--line);
+  color: var(--tx-1);
+}
+.sec--ink { background: var(--ink); }
+
+.sec__head { max-width: 640px; margin-bottom: clamp(32px, 5vw, 56px); }
+.sec__head h2 {
+  font-size: clamp(30px, 4.2vw, 46px);
+  letter-spacing: -0.038em;
+  margin-top: 16px;
+}
+.sec__head p {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--tx-2);
+  max-width: 56ch;
+}
+
+/* ---------------- o quadro do aplicativo ----------------
+   O layout é um só e cabe numa tela: título em cima, aparelho à esquerda,
+   os quatro passos numerados à direita. Ele fica preso enquanto o trilho
+   rola por baixo, e o que muda é a tela do celular e o passo aceso. */
+
+.palco { position: relative; height: 340vh; }
+@media (min-width: 940px) { .palco { height: 400vh; } }
+
+.palco__fixo {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+}
+.quadro { width: 100%; padding-top: 64px; }
+
+.quadro__grid { display: grid; gap: 22px; align-items: center; }
+@media (min-width: 940px) {
+  .quadro__grid { grid-template-columns: 0.95fr 1.05fr; gap: clamp(36px, 5vw, 80px); }
+}
+
+.quadro__fone { display: grid; place-items: center; }
+.scene__fone { filter: drop-shadow(0 40px 70px rgba(0, 0, 0, 0.55)); }
+
+/* ---------------- os quatro passos ---------------- */
+
+.etapas {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  /* espaço suficiente para o fio não encostar nos números */
+  padding: 0 0 0 46px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2.4vh, 30px);
+}
+
+.etapa button {
+  display: flex;
+  gap: clamp(14px, 1.6vw, 26px);
+  align-items: flex-start;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.etapa__n {
+  flex: none;
+  width: 26px;
+  padding-top: 7px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.32);
+  transition: color 0.45s ease;
+}
+.etapa__txt { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.etapa__t {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(20px, 2.1vw, 28px);
+  letter-spacing: -0.03em;
+  color: #fff;
+  transition: color 0.45s ease;
+}
+.etapa__d {
+  font-size: clamp(14px, 1.05vw, 15.5px);
+  line-height: 1.55;
+  max-width: 36ch;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.45s ease;
+}
+.etapa[data-on="true"] .etapa__n,
+.etapa[data-on="true"] .etapa__t,
+.etapa[data-on="true"] .etapa__t svg { color: var(--acid); }
+.etapa[data-on="true"] .etapa__d { color: rgba(255, 255, 255, 0.78); }
+.etapa button:hover .etapa__d { color: rgba(255, 255, 255, 0.72); }
+
+/* efeito 6 · o fio à esquerda dos números, com o trecho verde no passo atual */
+.etapas__fio {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  opacity: 0.45;
+  transition: opacity 0.45s ease;
+}
+.etapas__fio[data-on="true"] { opacity: 1; }
+.etapas__verde {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--acid);
+  box-shadow: 0 0 12px rgba(18, 251, 61, 0.55);
+  transition: transform 0.55s cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+
+
+/* ---------------- faixa de categorias ---------------- */
+.marquee {
+  overflow: hidden;
+  /* escura: ela mora entre duas seções escuras, e faixa fina de cor
+     diferente no meio do escuro sempre parece erro de montagem */
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--ink);
+  padding-block: 18px;
+  position: relative;
+}
+/* As pontas somem por cima, com a cor da própria faixa. Antes isso era um
+   mask, que furava a faixa e deixava o fundo da página aparecer por baixo. */
+.marquee::before,
+.marquee::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 13%;
+  z-index: 2;
+  pointer-events: none;
+}
+.marquee::before { left: 0; background: linear-gradient(90deg, var(--ink), transparent); }
+.marquee::after { right: 0; background: linear-gradient(270deg, var(--ink), transparent); }
+.marquee__track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  animation: marquee 46s linear infinite;
+}
+.marquee:hover .marquee__track { animation-play-state: paused; }
+.marquee__set { display: flex; gap: 12px; }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - 6px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+}
+
+/* dentro da faixa escura a pastilha precisa subir um tom para existir */
+.marquee .mchip { background: var(--paper); }
+
+.mchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13.5px;
+  color: var(--tx-2);
+  white-space: nowrap;
+  background: var(--canvas);
+}
+.mchip svg { color: var(--tx-3); }
+
+/* ---------------- nota do mês ---------------- */
+.score-s { display: grid; gap: 44px; align-items: center; }
+@media (min-width: 900px) { .score-s { grid-template-columns: 0.95fr 1.05fr; gap: 64px; } }
+
+.gauge { position: relative; display: grid; place-items: center; margin-inline: auto; }
+.gauge__val { position: absolute; text-align: center; color: #fff; }
+.gauge__n {
+  font-family: var(--f-display);
+  font-size: 64px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  transition: color 0.4s ease;
+}
+.gauge__t {
+  font-size: 13.5px;
+  margin-top: 8px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: color 0.4s ease;
+}
+.gauge__s {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 4px;
+  transition: opacity 0.4s ease;
+}
+
+.reasons { display: flex; flex-direction: column; gap: 12px; margin-top: 26px; }
+.reason {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid var(--acid);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 14.5px;
+  line-height: 1.5;
+  transition: background 0.3s, border-color 0.3s, transform 0.3s;
+}
+.reason:hover {
+  background: rgba(18, 251, 61, 0.05);
+  border-color: rgba(18, 251, 61, 0.22);
+  border-left-color: var(--acid);
+  transform: translateX(3px);
+}
+.reason svg { flex: none; margin-top: 2px; color: var(--acid); }
+
+/* ---------------- recursos ---------------- */
+.feats { display: grid; border-top: 1px solid var(--line); }
+@media (min-width: 640px) { .feats { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 980px) { .feats { grid-template-columns: repeat(3, 1fr); } }
+
+.feat { padding: 30px 0; border-bottom: 1px solid var(--line); }
+@media (min-width: 640px) {
+  .feat { padding: 32px 28px; border-right: 1px solid var(--line); }
+  .feat:nth-child(2n) { border-right: 0; }
+}
+@media (min-width: 980px) {
+  .feat { border-right: 1px solid var(--line); }
+  .feat:nth-child(2n) { border-right: 1px solid var(--line); }
+  .feat:nth-child(3n) { border-right: 0; }
+}
+.feat__ic {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--canvas-2);
+  color: var(--ink);
+  margin-bottom: 16px;
+  transition: background 0.25s, color 0.25s;
+}
+.feat:hover .feat__ic { background: var(--ink); color: var(--acid); }
+.feat h3 { font-size: 17.5px; letter-spacing: -0.025em; }
+.feat p { margin-top: 9px; font-size: 14.5px; line-height: 1.6; color: var(--tx-2); max-width: 34ch; }
+
+/* ---------------- contato ---------------- */
+.contact { display: grid; gap: 36px; }
+@media (min-width: 860px) { .contact { grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; } }
+
+.contact__cards { display: flex; flex-direction: column; gap: 12px; }
+.ccard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #fff;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+.ccard:hover {
+  background: rgba(18, 251, 61, 0.07);
+  border-color: rgba(18, 251, 61, 0.3);
+  transform: translateY(-2px);
+}
+.ccard__ic {
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(18, 251, 61, 0.12);
+  color: var(--acid);
+}
+.ccard__txt { display: flex; flex-direction: column; min-width: 0; }
+.ccard__l { font-size: 12px; color: rgba(255, 255, 255, 0.5); }
+.ccard__v {
+  word-break: break-word;
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+/* ---------------- chamada final ---------------- */
+.cta { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.cta h2 { font-size: clamp(32px, 5vw, 56px); letter-spacing: -0.042em; color: #fff; max-width: 16ch; }
+.cta p { color: rgba(255, 255, 255, 0.62); font-size: 17px; max-width: 46ch; }
+
+/* ---------------- rodapé ---------------- */
+.foot {
+  background: var(--ink);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.5);
+  padding-block: 40px;
+  font-size: 13.5px;
+}
+.foot__in { display: grid; gap: 26px; }
+@media (min-width: 780px) { .foot__in { grid-template-columns: 1.6fr 1fr 1fr; gap: 34px; } }
+.foot__col { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.foot__h {
+  color: rgba(255, 255, 255, 0.38);
+  margin-bottom: 2px;
+}
+.foot__col a { transition: color 0.16s; }
+.foot__col a:hover { color: var(--acid); }
+.foot__bar {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 12.5px;
+}
+
+/* ---------------- revelações na rolagem ---------------- */
+/* Estado de repouso = visível. A animação só existe onde o
+   navegador entende linhas do tempo de rolagem.               */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .rise {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 2% cover 24%;
+    }
+    .rise--soft { animation-range: entry 0% cover 30%; }
+
+    .hero-s__phone {
+      animation: park linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 70vh;
+    }
+  }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes park {
+  from { transform: translateY(18px) scale(1.012); }
+  to { transform: translateY(-6px) scale(1); }
+}
+
+.reason__h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 3px;
+}
+.reason__w {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(18, 251, 61, 0.12);
+  color: var(--acid);
+}
+
+.mchip__e { font-size: 14px; line-height: 1; }
+
+/* dica do mês interativo: aparece depois de um tempo parado e some no
+   primeiro movimento do mouse */
+.hero-s__dica {
+  display: block;
+  margin-top: 18px;
+  text-align: center;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.42);
+  animation: dica 0.6s ease 2s both;
+  pointer-events: none;
+}
+@keyframes dica {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (hover: none) { .hero-s__dica { display: none; } }
+
+/* ---------------- origem: quem fez e por quê ---------------- */
+/* O título fica parado à esquerda enquanto o depoimento rola à direita.
+   O texto é longo, então a medida de leitura é curta de propósito. */
+.origem { display: grid; gap: 26px; }
+@media (min-width: 940px) {
+  .origem { grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); gap: 64px; align-items: start; }
+  .origem__head { position: sticky; top: 96px; }
+}
+.origem__head h2 {
+  font-size: clamp(26px, 3.4vw, 38px);
+  margin-top: 14px;
+  max-width: 18ch;
+}
+/* O depoimento é uma citação: <blockquote> traz margem própria do
+   navegador, que some aqui, e a aspa de abertura fica pendurada na
+   margem para o texto continuar alinhado com o resto da página. */
+.origem__txt { margin: 0; }
+.origem__aspa {
+  /* Tom do próprio texto, um pouco mais apagado: a aspa é tipografia, e
+     não enfeite. Verde aqui brigaria com o fundo creme da seção. */
+  color: var(--tx-3);
+}
+@media (min-width: 720px) {
+  .origem__aspa { margin-left: -0.45em; }
+}
+.origem__ass { display: block; font-style: normal; }
+.origem__txt p {
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--tx-2);
+  max-width: 60ch;
+}
+.origem__txt p + p { margin-top: 18px; }
+.origem__ass {
+  margin-top: 26px !important;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
+  color: var(--tx-1) !important;
+  font-size: 14.5px !important;
+}
+
+/* selo de instalar: o Gastô não está em loja nenhuma, então o selo é
+   nosso, com a nossa cara, dizendo exatamente o que acontece */
+.selo-app {
+  margin-top: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 22px 11px 11px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: #fff;
+}
+.selo-app__ic {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--acid);
+  display: grid;
+  place-items: center;
+}
+.selo-app__k {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 16.5px;
+  letter-spacing: -0.025em;
+}
+.selo-app__v {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---------------- as emendas entre os atos ----------------
+   O site tem três atos: escuro, claro, escuro. Só existem duas emendas, e
+   cada uma é um degradê curto pintado com a cor de DESTINO, no fim da
+   seção que termina. Assim o escuro desliza para o creme em vez de bater. */
+.emenda { position: relative; }
+.emenda::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* curto de propósito: é uma passagem, não um efeito */
+  height: 78px;
+  pointer-events: none;
+  z-index: 0;
+}
+.emenda--claro::after { background: linear-gradient(transparent, #f3ece0); }
+.emenda--escuro::after { background: linear-gradient(transparent, var(--ink)); }
+/* a borda de baixo do ato claro apareceria como um fio claro dentro do
+   degradê que já está escuro naquele ponto */
+.emenda--escuro { border-bottom-color: transparent; }
+.emenda > .wrap { position: relative; z-index: 1; }
+
+/* ---------------- perguntas frequentes ---------------- */
+.faq { display: grid; gap: 10px; max-width: 820px; }
+.faq__i {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  overflow: hidden;
+  transition: border-color 0.16s;
+}
+.faq__i[open] { border-color: var(--pos); }
+.faq__i summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 17px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+.faq__i summary::-webkit-details-marker { display: none; }
+.faq__i summary:hover { color: var(--pos); }
+.faq__i summary svg { flex: none; color: var(--tx-3); transition: transform 0.2s; }
+.faq__i[open] summary svg { transform: rotate(180deg); color: var(--pos); }
+.faq__i p {
+  padding: 0 20px 18px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--tx-2);
+  max-width: 62ch;
+}
+
+/* ---------- instalar na tela do celular ---------- */
+.passos2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 820px;
+}
+@media (max-width: 720px) {
+  .passos2 { grid-template-columns: 1fr; }
+}
+.passos2__col {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--canvas);
+  padding: 20px;
+}
+.passos2__h {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--f-display);
+  font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.passos2__h svg { color: var(--pos); }
+.passos { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.passos__i {
+  display: flex; gap: 11px; align-items: flex-start;
+  font-size: 14.5px; line-height: 1.55; color: var(--tx-2);
+}
+.passos__n {
+  flex: none;
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--line-2);
+  color: var(--pos);
+  font-size: 11.5px; font-weight: 600;
+  margin-top: 2px;
+}
+
+
+/* ═══════════════ seção do aplicativo, sobre a areia ═══════════════ */
+
+.sec--areia {
+  position: relative;
+  isolation: isolate;
+  /* fundo próprio: se a areia presa soltar por um instante, o que aparece
+     atrás é escuro, e não o papel claro do resto do site */
+  background: #0a0e0b;
+  /* clip e não hidden: hidden criaria um contêiner de rolagem e mataria o
+     position:sticky da coluna do aparelho, que é o coração do scrolltelling */
+  overflow: clip;
+  color: #fff;
+}
+.areia__palco { position: absolute; inset: 0; z-index: -1; }
+.areia__fixo {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: clip;
+}
+.areia {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* a cor quente da areia brigaria com o verde da marca, então ela perde
+     saturação e brilho e vira superfície em vez de assunto */
+  filter: saturate(0.34) brightness(0.8) contrast(1.05);
+  will-change: transform;
+}
+.areia__veu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(6, 9, 7, 0.94) 0%,
+    rgba(6, 9, 7, 0.84) 46%,
+    rgba(6, 9, 7, 0.74) 100%
+  );
+}
+/* vinheta: fecha as bordas e mantém o meio respirando */
+.areia__fixo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 45%, transparent 38%, rgba(4, 6, 5, 0.5) 100%);
+}
+
+/* efeito 4 · o halo verde muda de lugar a cada capítulo, então o fundo
+   conta a história junto com o aparelho em vez de ser papel de parede */
+.areia__halo {
+  position: absolute;
+  pointer-events: none;
+  width: 70%;
+  height: 58%;
+  left: 4%;
+  top: 0%;
+  background: radial-gradient(closest-side, rgba(18, 251, 61, 0.17), transparent 72%);
+  transition: transform 0.9s cubic-bezier(0.22, 0.8, 0.28, 1), opacity 0.9s ease;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+.areia__halo[data-cap="0"] { transform: translate3d(0, 4%, 0) scale(1); }
+.areia__halo[data-cap="1"] { transform: translate3d(6%, 34%, 0) scale(0.92); }
+.areia__halo[data-cap="2"] { transform: translate3d(-2%, 62%, 0) scale(1.22); opacity: 0.85; }
+.areia__halo[data-cap="3"] { transform: translate3d(14%, 44%, 0) scale(0.78); opacity: 1; }
+
+/* o texto da seção inverte, porque o fundo ficou escuro */
+.sec--areia .sec__head h2 { color: #fff; }
+.sec--areia .sec__head p { color: rgba(255, 255, 255, 0.66); }
+
+/* No celular o quadro fica no alto da tela em vez de centralizado, e os
+   textos dos passos só aparecem no passo aceso, senão não cabe. */
+@media (max-width: 939px) {
+  .palco__fixo { align-items: flex-start; }
+  .quadro { padding-top: 76px; }
+  .sec--areia .sec__head { margin-bottom: 20px; }
+  .sec--areia .sec__head h2 { font-size: clamp(24px, 6.4vw, 30px); }
+  .sec--areia .sec__head p { display: none; }
+  .etapas { padding-left: 30px; gap: 8px; }
+  .etapa button { align-items: center; }
+  .etapa__n { padding-top: 0; width: 22px; }
+  .etapa__t { font-size: 18px; }
+  .etapa__d { display: none; }
+  .etapa[data-on="true"] .etapa__d { display: block; }
+}
+
+/* efeito 2 · a faixa de luz cruza o vidro no instante da troca de tela */
+.passada {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    104deg,
+    transparent 38%,
+    rgba(18, 251, 61, 0.22) 47%,
+    rgba(214, 255, 224, 0.4) 50%,
+    rgba(18, 251, 61, 0.22) 53%,
+    transparent 62%
+  );
+  animation: passada 0.72s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes passada {
+  from { transform: translate3d(-115%, 0, 0); opacity: 0; }
+  30% { opacity: 1; }
+  to { transform: translate3d(115%, 0, 0); opacity: 0; }
+}
+
+/* quem pediu menos movimento no sistema não recebe nenhum destes efeitos */
+@media (prefers-reduced-motion: reduce) {
+  .areia { transform: none !important; }
+  .areia__halo,
+  .etapas__verde { transition: none; }
+  .passada { display: none; }
+}
+
+
+/* O aparelho da cena roda o app no escuro, que é o padrão dele. O degradê
+   do topo das telas é claro na marra e vazaria dentro da moldura. */
+.scene__fone .phone__inner .scr {
+  background:
+    radial-gradient(120% 380px at 50% -40px, rgba(18, 251, 61, 0.14), transparent 70%),
+    linear-gradient(180deg, #16211a 0, var(--canvas) 400px);
+}

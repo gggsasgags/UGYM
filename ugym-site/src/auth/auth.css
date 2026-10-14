@@ -1,0 +1,208 @@
+.auth {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--canvas);
+}
+@media (min-width: 900px) {
+  .auth { grid-template-columns: 1.05fr 1fr; }
+}
+
+.auth__side {
+  display: none;
+  background: var(--ink);
+  padding: 40px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+}
+@media (min-width: 900px) {
+  .auth__side { display: flex; }
+}
+
+.auth__brand { display: inline-flex; }
+
+.auth__pitch h2 {
+  font-size: clamp(26px, 2.4vw, 34px);
+  margin-top: 14px;
+  color: var(--tx-1);
+}
+
+.auth__list {
+  list-style: none;
+  margin: 26px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--tx-2);
+  font-size: 14.5px;
+}
+.auth__list li { display: flex; gap: 10px; align-items: flex-start; }
+.auth__list svg { color: var(--acid); flex: none; margin-top: 3px; }
+
+.auth__foot { font-size: 12.5px; color: var(--tx-3); }
+
+.auth__main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 28px 20px 48px;
+  position: relative;
+}
+
+.auth__back {
+  position: absolute;
+  top: 22px;
+  left: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  color: var(--tx-2);
+}
+.auth__back:hover { color: var(--tx-1); }
+
+.auth__form {
+  width: min(400px, 100%);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.auth__form h1 {
+  font-size: 29px;
+  margin-top: 8px;
+}
+.auth__sub { color: var(--tx-2); font-size: 14.5px; margin-bottom: 6px; }
+.auth__legal {
+  font-size: 12.5px; line-height: 1.55; color: var(--tx-3); text-align: center;
+  margin-top: -2px;
+}
+.auth__legal a { color: var(--tx-2); text-decoration: underline; text-underline-offset: 2px; }
+.auth__legal a:hover { color: var(--tx-1); }
+
+.auth__switch { font-size: 13.5px; color: var(--tx-2); text-align: center; }
+.auth__switch a { font-weight: 600; color: var(--tx-1); text-decoration: underline; text-underline-offset: 3px; }
+
+/* escolha de como começar */
+.start {
+  border: 0;
+  padding: 0;
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.start legend {
+  font-size: 12.5px;
+  color: var(--tx-2);
+  font-weight: 500;
+  padding: 0;
+  margin-bottom: 3px;
+}
+.start__opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  text-align: left;
+  padding: 13px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: 13px;
+  background: var(--paper);
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+.start__opt svg { flex: none; margin-top: 2px; color: var(--tx-3); }
+.start__opt span { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--tx-2); line-height: 1.45; }
+.start__opt strong { font-size: 14px; color: var(--tx-1); letter-spacing: -0.01em; }
+.start__opt[aria-pressed="true"] {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(11, 14, 12, 0.06);
+}
+.start__opt[aria-pressed="true"] svg { color: var(--pos); }
+
+.btn[disabled] { opacity: 0.6; cursor: default; }
+
+/* ---------------- entrar com o Google ---------------- */
+/* O botão só existe quando o provider está ligado no Supabase, então ele
+   nunca aparece para dar erro. O visual segue a marca do Google: fundo
+   branco, borda discreta e o "G" colorido oficial. */
+.btn--google {
+  width: 100%;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  color: #1f1f1f;
+  border: 1px solid var(--line-2);
+  font-weight: 600;
+}
+.btn--google:hover { background: #f7f8f7; border-color: var(--line); }
+.btn--google svg { flex: none; }
+
+.auth__ou {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--tx-3);
+  margin: 2px 0;
+}
+.auth__ou::before,
+.auth__ou::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-2);
+}
+
+/* --------- aviso de cadastro esperando confirmação de e-mail --------- */
+/* Aparece no topo do login, logo depois de criar a conta. A mudança de
+   tela já diz que deu certo; o aviso diz o que falta. */
+.auth__aviso {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(18, 251, 61, 0.09);
+  border: 1px solid rgba(18, 251, 61, 0.28);
+}
+.auth__aviso__selo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--acid);
+}
+.auth__aviso strong {
+  display: block;
+  font-size: 14px;
+  color: var(--tx-1);
+  letter-spacing: -0.01em;
+}
+.auth__aviso p {
+  margin-top: 5px;
+  font-size: 12.8px;
+  line-height: 1.5;
+  color: var(--tx-2);
+}
+.auth__aviso b { color: var(--tx-1); font-weight: 600; }
+.auth__aviso .linklike { margin-top: 8px; display: inline-block; font-size: 12.8px; }
+.auth__aviso__ok { margin-top: 8px; display: inline-block; font-size: 12.8px; color: var(--tx-2); }
+
+.linklike {
+  color: var(--tx-1);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font: inherit;
+}
+
+/* o "Esqueci minha senha", encostado no campo de senha e discreto */
+.auth__esqueci {
+  margin: -6px 0 0;
+  text-align: right;
+  font-size: 13px;
+}

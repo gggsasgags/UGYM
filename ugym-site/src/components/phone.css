@@ -1,0 +1,260 @@
+.phone {
+  position: relative;
+  flex: none;
+  max-width: 100%;
+}
+
+.phone__frame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: block;
+  user-select: none;
+}
+
+.phone__screen {
+  position: absolute;
+  overflow: hidden;
+  background: var(--canvas);
+  isolation: isolate;
+  z-index: 1;
+}
+
+.phone__inner {
+  transform-origin: top left;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* a barra de status ocupa o topo da tela */
+.phone__inner .scr { padding-top: 46px; }
+
+.phone__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 46px;
+  padding: 14px 27px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  color: var(--tx-1);
+}
+.phone__hora { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+.phone__sinais { display: inline-flex; align-items: center; gap: 5px; }
+/* na tela de bloqueio o papel de parede é escuro em qualquer tema */
+.phone__inner:has(.lock) .phone__bar { color: #fff; }
+
+.phone--glow {
+  filter: drop-shadow(0 30px 50px rgba(11, 14, 12, 0.35))
+    drop-shadow(0 0 60px rgba(18, 251, 61, 0.18));
+}
+
+/* ---------------- app navegável dentro da moldura ---------------- */
+
+.pfone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas);
+}
+.pfone__view { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+.pfone__view .scr { height: 100%; }
+.pfone__view .scr__body { padding-bottom: 20px; }
+
+.pfone__tabs {
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px 6px 22px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+.pfone__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tx-3);
+  padding: 5px 0;
+  border-radius: 12px;
+  transition: color 0.18s, background 0.18s;
+}
+.pfone__tab[aria-selected="true"] { color: var(--pos); font-weight: 600; }
+.pfone__tab:hover { color: var(--tx-1); }
+
+/* dica embaixo do aparelho do herói */
+.phonehint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.phonehint i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--acid);
+  display: block;
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* ---------------- tela de bloqueio ---------------- */
+
+.lock {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(130% 60% at 50% 0%, rgba(18, 251, 61, 0.34), transparent 62%),
+    radial-gradient(90% 50% at 18% 100%, rgba(16, 180, 60, 0.26), transparent 70%),
+    linear-gradient(165deg, #1d3526 0%, #0a0f0c 70%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  /* o topo livra a barra de status, que é desenhada pelo componente */
+  padding: 52px 22px 18px;
+}
+
+.lock__padlock {
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 26px;
+}
+
+.lock__date {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.82);
+  text-transform: capitalize;
+  margin-top: 14px;
+}
+.lock__time {
+  text-align: center;
+  font-family: var(--f-display);
+  font-size: 86px;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.lock__notes { margin-top: auto; }
+.lock__note {
+  display: flex;
+  gap: 11px;
+  padding: 13px 14px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+}
+.lock__ic {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 11px;
+  background: #0b0e0c;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.lock__txt { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lock__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+.lock__head strong { font-weight: 700; letter-spacing: 0.04em; }
+.lock__head span { color: rgba(255, 255, 255, 0.6); }
+.lock__title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.lock__body { font-size: 14px; line-height: 1.35; color: rgba(255, 255, 255, 0.86); }
+
+.lock__actions {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 18px;
+  margin-top: 26px;
+}
+.lock__round {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+
+.lock__bar {
+  width: 126px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  margin: 22px auto 0;
+}
+
+/* ---------------- pilha de telas com transição suave ---------------- */
+.deck { position: absolute; inset: 0; }
+.deck__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(16px) scale(0.985);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 0.75, 0.24, 1),
+    transform 0.62s cubic-bezier(0.22, 0.75, 0.24, 1);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+.deck__layer[data-on="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.deck__layer[data-past="true"] { transform: translateY(-16px) scale(0.985); }
+
+@media (prefers-reduced-motion: reduce) {
+  .deck__layer { transform: none; }
+}
+
+
+/* efeito 1 · a pílula desliza de uma aba para a outra em vez de piscar no
+   lugar novo. A posição vem de --aba, que é o índice da aba ativa. */
+.pfone__pilula {
+  position: absolute;
+  z-index: 0;
+  top: 5px;
+  left: 6px;
+  width: calc((100% - 12px) / 4);
+  height: calc(100% - 27px);
+  border-radius: 14px;
+  background: var(--pos-soft);
+  transform: translate3d(calc(var(--aba, 0) * 100%), 0, 0);
+  transition: transform 0.42s cubic-bezier(0.22, 0.8, 0.28, 1);
+}
+.pfone__tab { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pfone__pilula { transition: none; }
+}
