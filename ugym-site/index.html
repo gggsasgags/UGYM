@@ -1269,9 +1269,9 @@
       if (r.target_speed_kmh != null)    tg.speed    = Number(r.target_speed_kmh);
       if (r.target_kcal != null)         tg.kcal     = Number(r.target_kcal);
       var ps = (r.parts && r.parts.length)
-        ? r.parts.map(function(x){ return {days:(x.days||[]).slice(), tipo:x.tipo||'', target:x.target||{}}; })
-        : [{days:(r.weekdays || []).slice(), tipo:r.modality, target:tg}];
-      return {id:r.id, name:r.name, modality:r.modality, archived:!!r.archived,
+        ? r.parts.map(function(x){ return {days:(x.days||[]).slice(), tipo:tipoOficial(x.tipo) || (x.tipo||''), target:x.target||{}}; })
+        : [{days:(r.weekdays || []).slice(), tipo:tipoOficial(r.modality) || (r.modality||''), target:tg}];
+      return {id:r.id, name:r.name, modality:tipoOficial(r.modality) || r.modality, archived:!!r.archived,
               days:(r.weekdays || []).slice(), target:tg, note:r.note || '', parts:ps};
     });
     reindexCardios();
@@ -2249,53 +2249,107 @@
   /* ===================== CARDIO ===================== */
   var openCardioId = null;
 
+  /* nomes iguais aos do app Exercício do Apple Watch (support.apple.com/pt-br/105089) */
   var CARDIO_TIPOS = [
-    ['Corrida', ['Corrida ao ar livre','Corrida na esteira','Corrida em trilha','Tiros / sprint']],
-    ['Caminhada', ['Caminhada ao ar livre','Caminhada na esteira','Caminhada inclinada','Trilha']],
-    ['Bicicleta', ['Bike ao ar livre','Bike ergométrica','Spinning','Mountain bike']],
-    ['Máquinas', ['Elíptico','Escada (simulador)','Escada de verdade','Remo ergômetro','Ski ergômetro','Air bike']],
-    ['Água', ['Natação em piscina','Natação em águas abertas','Hidroginástica']],
-    ['Intervalado', ['HIIT','Treino funcional','Circuito','Pular corda','Condicionamento']],
-    ['Luta', ['Boxe','Muay thai','Kickboxing','Jiu-jitsu','Wrestling']],
-    ['Esportes', ['Futebol','Futsal','Basquete','Vôlei','Tênis','Beach tennis','Padel','Handebol','Corrida de obstáculos']],
-    ['Outros', ['Escalada','Dança','Patins','Skate','Surf','Stand up paddle','Caiaque','Subida de morro','Mobilidade','Outro']]
+    ['Corrida e caminhada', ['Corrida Interna','Corrida ao Ar Livre','Caminhada Interna','Caminhada ao Ar Livre','Trilha','Subir Escadas','Atletismo']],
+    ['Bicicleta', ['Bicicleta Interna','Bicicleta ao Ar Livre','Ciclismo com as Mãos']],
+    ['Máquinas', ['Elíptico','Remo Interno','Escada','Treino de Step']],
+    ['Força e condicionamento', ['Treino Tradicional de Força','Treino Funcional de Força','Treino HIIT','Cross Training','Treino de Core','Cardiovascular Misto','Jogos de Preparo Físico','Pular Corda','Multiesporte']],
+    ['Água', ['Nado em Piscina','Nado em Águas Abertas','Exercícios Aquáticos','Remo ao Ar Livre','Polo Aquático','Esportes Aquáticos','Surfe','Iatismo','Pesca']],
+    ['Luta', ['Boxe','Kickboxing','Artes Marciais','Luta','Esgrima']],
+    ['Esportes', ['Futebol de Salão','Futebol ao Ar Livre','Futebol Americano','Futebol Australiano','Basquete','Voleibol','Handebol','Tênis','Tênis de Mesa','Badminton','Squash','Raquetebol','Pickleball','Beisebol','Softbol','Críquete','Rugby','Lacrosse','Hóquei Indoor','Hóquei de Grama','Golfe','Boliche','Curling','Esportes com Disco','Jogos']],
+    ['Mente e corpo', ['Ioga','Pilates','Tai Chi','Flexibilidade','Mente e Corpo','Barra','Desaquecimento','Dança','Dança Social','Ginástica']],
+    ['Ar livre e neve', ['Escalada','Esqui Cross-Country','Esqui Downhill','Snowboard','Esportes de Neve','Patinação Interna','Skate ao Ar Livre','Esportes Equestres','Arco e Flecha','Caça','Rolar']],
+    ['Outros', ['Cadeira de Rodas ao Ar Livre em Ritmo Acelerado','Cadeira de Rodas ao Ar Livre em Ritmo Normal','Outro']]
   ];
-  /* um protocolo é feito de blocos: cada bloco tem seus dias, seu tipo e seu alvo */
-  function partsDe(c){
-    if (c.parts && c.parts.length) return c.parts;
-    c.parts = [{days:(c.days||[]).slice(), tipo: c.modality || c.name, target: c.target || {}}];
-    return c.parts;
+  /* nomes que o app usava antes -> nome oficial, pra não perder protocolo salvo (chave sem acento, minúscula) */
+  var TIPO_ANTIGO = {
+    'corrida na esteira':'Corrida Interna', 'tiros / sprint':'Corrida Interna',
+    'corrida em trilha':'Trilha', 'subida de morro':'Trilha',
+    'caminhada na esteira':'Caminhada Interna', 'caminhada inclinada':'Caminhada Interna',
+    'escada de verdade':'Subir Escadas', 'escada (simulador)':'Escada',
+    'bike ergometrica':'Bicicleta Interna', 'spinning':'Bicicleta Interna', 'air bike':'Bicicleta Interna',
+    'bike ao ar livre':'Bicicleta ao Ar Livre', 'mountain bike':'Bicicleta ao Ar Livre',
+    'remo ergometro':'Remo Interno', 'ski ergometro':'Esqui Cross-Country',
+    'natacao em piscina':'Nado em Piscina', 'natacao em aguas abertas':'Nado em Águas Abertas',
+    'hidroginastica':'Exercícios Aquáticos', 'stand up paddle':'Esportes Aquáticos',
+    'caiaque':'Remo ao Ar Livre', 'surf':'Surfe',
+    'hiit':'Treino HIIT', 'treino funcional':'Treino Funcional de Força',
+    'circuito':'Cross Training', 'corrida de obstaculos':'Cross Training',
+    'condicionamento':'Cardiovascular Misto',
+    'muay thai':'Artes Marciais', 'jiu-jitsu':'Artes Marciais', 'wrestling':'Luta',
+    'futsal':'Futebol de Salão', 'futebol':'Futebol ao Ar Livre',
+    'volei':'Voleibol', 'beach tennis':'Tênis', 'padel':'Tênis',
+    'patins':'Patinação Interna', 'skate':'Skate ao Ar Livre',
+    'mobilidade':'Flexibilidade'
+  };
+  /* apelidos só pra busca — o nome que fica salvo é sempre o da Apple */
+  var TIPO_APELIDO = {
+    'Corrida Interna':'esteira corrida indoor sprint tiros',
+    'Corrida ao Ar Livre':'rua asfalto outdoor',
+    'Caminhada Interna':'esteira walk inclinada',
+    'Caminhada ao Ar Livre':'walk rua',
+    'Trilha':'trail montanha morro hike',
+    'Subir Escadas':'escadaria predio',
+    'Bicicleta Interna':'bike ergometrica spinning indoor air bike ciclismo',
+    'Bicicleta ao Ar Livre':'bike ciclismo speed mountain mtb estrada',
+    'Elíptico':'eliptica transport',
+    'Remo Interno':'remo ergometro remada',
+    'Escada':'simulador stair master degraus',
+    'Treino de Step':'step aerobico',
+    'Treino HIIT':'hiit intervalado tabata',
+    'Cross Training':'crossfit circuito funcional obstaculos',
+    'Treino Funcional de Força':'funcional',
+    'Treino Tradicional de Força':'musculacao academia pesos',
+    'Cardiovascular Misto':'cardio condicionamento aerobico',
+    'Pular Corda':'corda jump rope',
+    'Nado em Piscina':'natacao nadar piscina swim',
+    'Nado em Águas Abertas':'natacao mar travessia swim',
+    'Exercícios Aquáticos':'hidroginastica hidro aqua',
+    'Remo ao Ar Livre':'caiaque canoa stand up paddle sup',
+    'Esportes Aquáticos':'stand up paddle sup jet esqui aquatico',
+    'Surfe':'surf prancha',
+    'Artes Marciais':'muay thai jiu jitsu judo karate mma',
+    'Luta':'wrestling luta olimpica',
+    'Futebol de Salão':'futsal quadra',
+    'Futebol ao Ar Livre':'futebol society campo pelada',
+    'Tênis':'beach tennis padel',
+    'Voleibol':'volei volei de praia',
+    'Escalada':'escalada boulder montanha climbing',
+    'Patinação Interna':'patins patinacao rollers',
+    'Skate ao Ar Livre':'skate longboard patins',
+    'Flexibilidade':'mobilidade alongamento',
+    'Desaquecimento':'cooldown volta a calma',
+    'Dança':'danca zumba ritmos',
+    'Ginástica':'ginastica artistica',
+    'Outro':'outro qualquer'
+  };
+  /* acha o nome oficial, tolerando acento, caixa e os nomes antigos */
+  function semAcento(t){
+    return (t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
   }
-  function diasDe(c){
-    var out = [];
-    partsDe(c).forEach(function(p){ (p.days||[]).forEach(function(d){ if (out.indexOf(d) < 0) out.push(d); }); });
-    return out.sort();
+  function tipoOficial(nome){
+    if (!nome) return '';
+    var a = semAcento(nome);
+    for (var i = 0; i < CARDIO_TIPOS.length; i++)
+      for (var j = 0; j < CARDIO_TIPOS[i][1].length; j++)
+        if (semAcento(CARDIO_TIPOS[i][1][j]) === a) return CARDIO_TIPOS[i][1][j];
+    return TIPO_ANTIGO[a] || '';
   }
-  function parteDoDia(c, dow){
-    var ps = partsDe(c);
-    for (var i = 0; i < ps.length; i++) if ((ps[i].days||[]).indexOf(dow) >= 0) return ps[i];
-    return null;
-  }
-  function alvoDoDia(c, dow, chave){
-    var p = parteDoDia(c, dow);
-    return (p && p.target && p.target[chave]) || 0;
-  }
-
-  function tipoExiste(nome){
-    var a = (nome||'').trim().toLowerCase();
-    for (var i = 0; i < CARDIO_TIPOS.length; i++){
-      for (var j = 0; j < CARDIO_TIPOS[i][1].length; j++){
-        if (CARDIO_TIPOS[i][1][j].toLowerCase() === a) return CARDIO_TIPOS[i][1][j];
-      }
-    }
-    return null;
-  }
+  function tipoExiste(nome){ return tipoOficial(nome) || null; }
   /* lista de tipos para escolher, com busca */
+  function casaTipo(t, q){
+    return semAcento(t).indexOf(q) >= 0 || semAcento(TIPO_APELIDO[t] || '').indexOf(q) >= 0;
+  }
   function tipoPickerHtml(busca, atual){
-    var q = (busca||'').trim().toLowerCase(), out = '';
+    var q = semAcento(busca), out = '';
+    /* se algum tipo bate pelo nome/apelido, mostro só eles; senão caio no nome do grupo */
+    var porNome = !q || CARDIO_TIPOS.some(function(g){
+      return g[1].some(function(t){ return casaTipo(t, q); });
+    });
     CARDIO_TIPOS.forEach(function(grupo){
       var hits = grupo[1].filter(function(t){
-        return !q || t.toLowerCase().indexOf(q) >= 0 || grupo[0].toLowerCase().indexOf(q) >= 0;
+        return !q || (porNome ? casaTipo(t, q) : semAcento(grupo[0]).indexOf(q) >= 0);
       });
       if (!hits.length) return;
       out += '<div class="eyebrow" style="margin:14px 0 7px">'+grupo[0]+'</div><div class="chips">' +
@@ -2670,7 +2724,7 @@
     function painelTipo(){
       return '<div class="search" style="margin-top:14px">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
-          '<input id="kBusca" type="search" value="'+kTipoBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bike, natação..." aria-label="Buscar tipo"></div>' +
+          '<input id="kBusca" type="search" value="'+kTipoBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bicicleta, nado..." aria-label="Buscar tipo"></div>' +
         '<div id="kTipos">' + tipoPickerHtml(kTipoBusca, tipo) + '</div>';
     }
     function ligarTipo(){
@@ -2759,7 +2813,7 @@
             '<button class="btn ghost sm" id="cdVolta">Voltar</button></div>' +
           '<div class="search" style="margin-top:14px">' +
             '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
-            '<input id="cdBusca" type="search" value="'+cdBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bike, natação..." aria-label="Buscar tipo"></div>' +
+            '<input id="cdBusca" type="search" value="'+cdBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bicicleta, nado..." aria-label="Buscar tipo"></div>' +
           '<div id="cdTipos">' + tipoPickerHtml(cdBusca, d.parts[cdPick].tipo) + '</div>' +
         '</div>';
       lockScroll(true);
