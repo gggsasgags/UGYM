@@ -303,6 +303,10 @@
   .set-head span:nth-child(4){text-align:center}
   .set-row{display:grid;grid-template-columns:22px 1fr 1fr 44px;gap:8px;align-items:center;padding:5px 0}
   .set-n{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .set-n{cursor:pointer;border:1px solid transparent;border-radius:7px;padding:2px 0;background:transparent}
+  .set-n:hover{border-color:var(--line)}
+  .set-row.is-warm{opacity:.62}
+  .set-row.is-warm .set-n{background:color-mix(in srgb, #C9A227 24%, var(--surface-2));border-color:color-mix(in srgb, #C9A227 50%, transparent);color:#C9A227;font-weight:700}
   .set-row input{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px 11px;outline:none;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:15px;text-align:center}
   .set-row input:focus{border-color:var(--accent)}
   .set-row[data-done="1"] input{background:transparent;border-color:var(--line-soft);color:var(--muted)}
@@ -394,6 +398,24 @@
   .cd-tipo .ed-e{display:block}
   .dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
   .dow-b{padding:9px 0;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);text-align:center;font-size:12px;color:var(--muted);min-width:0}
+  /* esforço 1-10 */
+  .rpe-row{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+  .rpe-b{padding:10px 0;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);
+         text-align:center;font-size:12.5px;font-weight:600;color:var(--muted);min-width:0;font-family:"IBM Plex Mono",monospace}
+  .rpe-b.on{background:var(--cardio);border-color:var(--cardio);color:#fff}
+  .rpe-b.lo.on{background:var(--muted);border-color:var(--muted)}
+  .rpe-b.hi.on{background:var(--accent);border-color:var(--accent)}
+  /* aderência ao planejado — só na faixa da aba Cardio */
+  .wk-day.ad-ok{background:color-mix(in srgb, var(--good) 34%, var(--surface-2))}
+  .wk-day.ad-quase{background:color-mix(in srgb, #C9A227 30%, var(--surface-2))}
+  .wk-day.ad-fora{background:color-mix(in srgb, #C9772A 30%, var(--surface-2))}
+  .wk-day.ad-extra{background:var(--surface-2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 55%, transparent)}
+  .wk-day.ad-nao{background:var(--surface-2);opacity:.5}
+  .meta-bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:9px}
+  .meta-bar > i{display:block;height:100%;border-radius:99px;background:var(--cardio);transition:width .35s ease}
+  .lg-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-size:11px;color:var(--muted)}
+  .lg-row span{display:inline-flex;align-items:center;gap:5px}
+  .lg-row i{width:9px;height:9px;border-radius:3px;display:inline-block}
   .dow-b.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   .txt{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;outline:none;font-size:15px}
   .txt:focus{border-color:var(--accent)}
@@ -680,7 +702,15 @@
   };
   var GROUP_ORDER = ['peito','costas','ombros','biceps','triceps','antebraco','pernas','panturrilha','abdomen'];
   var STEP_MIX = [100, 72, 50];
+  /* nome escapado: nome de exercício com < ou " não pode quebrar a tela */
+  function esc(t){
+    return String(t === null || t === undefined ? '' : t)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function grupoLabel(g){ return (GROUPS[g] && GROUPS[g].label) || 'Sem grupo'; }
   function gColor(g){
+    if (!GROUPS[g]) return 'var(--muted)';
     var base = 'var(--g-' + GROUPS[g].family + ')', m = STEP_MIX[GROUPS[g].step];
     return m === 100 ? base : 'color-mix(in srgb, ' + base + ' ' + m + '%, var(--text))';
   }
@@ -856,6 +886,13 @@
   function activeCardios(){ return CARDIOS.filter(function(c){ return !c.archived; }); }
 
   var today = new Date(); today.setHours(9,0,0,0);
+  function hoje(){ var d = new Date(); d.setHours(9,0,0,0); return d; }
+  /* o app fica aberto dias no celular; se o dia virou, o resto precisa saber */
+  function viraDia(){
+    var n = hoje();
+    if (dayKey(n) === dayKey(today)) return false;
+    today = n; return true;
+  }
   var WEEKDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   var MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   var MONTHS_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -864,7 +901,11 @@
   function dayKey(d){ d = new Date(d); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function shortDate(d){ d = new Date(d); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
   function longDate(d){ d = new Date(d); return d.getDate() + ' de ' + MONTHS_FULL[d.getMonth()].toLowerCase(); }
-  function est1rm(kg, reps){ return Math.round(kg * (1 + reps/30) * 10)/10; }
+  /* PR é maior carga; com a mesma carga, mais repetições. Vale pra peso corporal também,
+     onde a carga é sempre a mesma e quem desempata é a repetição. */
+  function melhorQue(kg, reps, pr){
+    return !pr || kg > pr.kg || (kg === pr.kg && reps > pr.reps);
+  }
   function fmt(n, dec){
     if (n === null || n === undefined || isNaN(n)) return '–';
     return Number(n).toLocaleString('pt-BR', {minimumFractionDigits:dec||0, maximumFractionDigits:dec===undefined?1:dec});
@@ -884,10 +925,15 @@
   var CARDIO_LOGS = [];
 
   var MANUAL = {};   // dias marcados na mão: dayKey -> {treino_id}
+  /* ajustes do usuário que viajam na nuvem */
+  var SETTINGS = {id:null, metaSemanal:0};   // 0 = sem meta própria, usa o plano dos protocolos
   var workoutsByDay = {}, cardioByDay = {};
   function reindexDays(){
     workoutsByDay = {}; cardioByDay = {};
-    WORKOUTS.forEach(function(w){ workoutsByDay[dayKey(w.started_at)] = w; });
+    WORKOUTS.forEach(function(w){
+      var k = dayKey(w.started_at);
+      (workoutsByDay[k] = workoutsByDay[k] || []).push(w);
+    });
     CARDIO_LOGS.forEach(function(c){
       var k = dayKey(c.date);
       (cardioByDay[k] = cardioByDay[k] || []).push(c);
@@ -902,15 +948,14 @@
     WORKOUTS.forEach(function(w){
       var s = w.sets.filter(function(x){ return x.exercise_id === exId && !x.is_warmup; });
       if (!s.length) return;
-      var top = 0, topReps = 0, best = 0, vol = 0, topSet = null;
+      var top = 0, topReps = 0, vol = 0, topSet = null;
       s.forEach(function(x){
         var kg = setKg(x, w.started_at);
         if (kg > top || (kg === top && x.reps > topReps)){ top = kg; topReps = x.reps; topSet = x; }
-        var e = est1rm(kg, x.reps); if (e > best) best = e;
         vol += kg * x.reps;
       });
       var maxReps = Math.max.apply(null, s.map(function(x){ return x.reps; }));
-      out.push({date:w.started_at, workout:w, top:top, topReps:topReps, topSet:topSet, maxReps:maxReps, best:best, vol:vol, sets:s.length, detail:s});
+      out.push({date:w.started_at, workout:w, top:top, topReps:topReps, topSet:topSet, maxReps:maxReps, vol:vol, sets:s.length, detail:s});
     });
     return out;
   }
@@ -919,8 +964,8 @@
     var pr = null;
     historyFor(exId).forEach(function(p){
       p.detail.forEach(function(s){
-        var kg = setKg(s, p.date), v = est1rm(kg, s.reps);
-        if (!pr || v > pr.e1rm) pr = {e1rm:v, kg:kg, reps:s.reps, date:p.date, bw:s.bw};
+        var kg = setKg(s, p.date);
+        if (melhorQue(kg, s.reps, pr)) pr = {kg:kg, reps:s.reps, date:p.date, bw:s.bw, workout:p.workout};
       });
     });
     return pr;
@@ -1005,7 +1050,7 @@
   function saveState(){
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
-        v:1, EXERCISES:EXERCISES, TREINOS:TREINOS, CARDIOS:CARDIOS,
+        v:1, SETTINGS:SETTINGS, EXERCISES:EXERCISES, TREINOS:TREINOS, CARDIOS:CARDIOS,
         CARDIO_LOGS:CARDIO_LOGS, WORKOUTS:WORKOUTS, BODY:BODY,
         PHOTOS: PHOTOS.map(function(ph){
           /* foto que já está na nuvem guarda só o caminho — o link expira */
@@ -1027,6 +1072,8 @@
       if (!d || d.v !== 1) return false;
       if (d.EXERCISES) EXERCISES = d.EXERCISES;
       if (d.TREINOS)   TREINOS   = d.TREINOS;
+      if (d.SETTINGS){ SETTINGS.id = d.SETTINGS.id || null;
+                       SETTINGS.metaSemanal = Number(d.SETTINGS.metaSemanal) || 0; }
       CARDIOS     = d.CARDIOS || [];
       CARDIO_LOGS = (d.CARDIO_LOGS || []).map(function(l){ l.date = new Date(l.date); return l; });
       WORKOUTS    = (d.WORKOUTS || []).map(function(w){ w.started_at = new Date(w.started_at); return w; });
@@ -1048,7 +1095,7 @@
   var SB_KEY = 'sb_publishable_WxEprMuj04oKe_nOt7bmbg_KDEOAgFH';
   var TABLES = ['exercises','routines','routine_exercises','workouts','workout_sets',
                 'workout_swaps','cardio_protocols','cardio_logs','body_weights',
-                'manual_days','progress_photos'];
+                'manual_days','progress_photos','app_settings'];
 
   var sb = null, USER = null, CLOUD = false, SNAP = null;
   var pushTimer = null, pushing = false, pushAgain = false, syncState = 'local';
@@ -1097,6 +1144,7 @@
     function mark(id){ if (id && !isUuid(id)){ if (!map[id]) map[id] = newId(); need = true; } }
     EXERCISES.forEach(function(e){ mark(e.id); });
     TREINOS.forEach(function(t){ mark(t.id); });
+    if (SETTINGS.id) mark(SETTINGS.id);
     CARDIOS.forEach(function(c){ mark(c.id); });
     WORKOUTS.forEach(function(w){ mark(w.id); (w.sets||[]).forEach(function(s){ mark(s.id); }); });
     CARDIO_LOGS.forEach(function(l){ mark(l.id); });
@@ -1109,6 +1157,7 @@
       t.id = m(t.id);
       (t.items||[]).forEach(function(it){ it.ex = m(it.ex); if (!isUuid(it.rid)) it.rid = newId(); });
     });
+    if (SETTINGS.id) SETTINGS.id = m(SETTINGS.id);
     CARDIOS.forEach(function(c){ c.id = m(c.id); });
     WORKOUTS.forEach(function(w){
       w.id = m(w.id); w.treino_id = m(w.treino_id);
@@ -1189,8 +1238,13 @@
         target_duration_min: num(tg.duration), target_distance_km: num(tg.distance),
         target_incline_pct: num(tg.incline), target_level: num(tg.level),
         target_speed_kmh: num(tg.speed), target_kcal: num(tg.kcal),
+        created_at: c.created_at || null, archived_at: c.archived_at || null,
         note: c.note || null, archived: !!c.archived});
     });
+
+    if (!SETTINGS.id) SETTINGS.id = newId();
+    if (isUuid(SETTINGS.id)) R.app_settings.push({id:SETTINGS.id, user_id:u,
+      weekly_cardio_min: Math.round(SETTINGS.metaSemanal) || 0});
 
     CARDIO_LOGS.forEach(function(l){
       if (!isUuid(l.id)) return;
@@ -1199,7 +1253,7 @@
         name: l.name || 'Cardio', modality: l.modality || null,
         performed_on: isoDay(l.date), duration_min: Math.round(l.duration || 0),
         distance_km: num(l.distance), incline_pct: num(l.incline), level: num(l.level),
-        kcal: num(l.kcal)});
+        kcal: num(l.kcal), rpe: num(l.rpe)});
     });
 
     BODY.forEach(function(b){
@@ -1272,6 +1326,7 @@
         ? r.parts.map(function(x){ return {days:(x.days||[]).slice(), tipo:tipoOficial(x.tipo) || (x.tipo||''), target:x.target||{}}; })
         : [{days:(r.weekdays || []).slice(), tipo:tipoOficial(r.modality) || (r.modality||''), target:tg}];
       return {id:r.id, name:r.name, modality:tipoOficial(r.modality) || r.modality, archived:!!r.archived,
+              created_at:r.created_at || null, archived_at:r.archived_at || null,
               days:(r.weekdays || []).slice(), target:tg, note:r.note || '', parts:ps};
     });
     reindexCardios();
@@ -1299,8 +1354,11 @@
       return {id:r.id, cardio_id:r.protocol_id, name:r.name, modality:r.modality,
               date: dayFromIso(r.performed_on), duration: r.duration_min,
               distance: num(r.distance_km), incline: num(r.incline_pct), level: num(r.level),
-              kcal: num(r.kcal)};
+              kcal: num(r.kcal), rpe: num(r.rpe)};
     }).sort(function(a,b){ return a.date - b.date; });
+
+    var cfg = (d.app_settings || [])[0];
+    if (cfg){ SETTINGS.id = cfg.id; SETTINGS.metaSemanal = Number(cfg.weekly_cardio_min) || 0; }
 
     BODY = (d.body_weights || []).map(function(r){
       return {id:r.id, measured_on: isoToKey(r.measured_on), date: dayFromIso(r.measured_on),
@@ -1601,6 +1659,15 @@
   });
 
 
+  /* voltou pro app depois de um dia: recalcula "hoje" e redesenha */
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) return;
+    if (viraDia()){
+      reindexDays();
+      try { renderTreinoList(); renderCardio(); renderAgenda(); } catch(e){}
+    }
+  });
+
   function lockScroll(on){
     document.body.classList.toggle('locked', !!on);
   }
@@ -1719,6 +1786,36 @@
     if (!activeSession || activeSession.treinoId !== tid) startSession(tid, false);
     return activeSession;
   }
+  /* tem algo marcado numa sessão de OUTRO treino? então não sobrescreve calado. */
+  function sessaoAtrapalha(tid){
+    if (!activeSession || activeSession.treinoId === tid) return false;
+    return sessionCounts().done > 0;
+  }
+  function pedirDescarte(tid, segue){
+    var c = sessionCounts(), antigo = activeSession.name, voltarPara = activeSession.treinoId;
+    document.getElementById('sheetHost').innerHTML =
+      '<div class="scrim" id="scrimDs"></div>' +
+      '<div class="sheet" role="dialog" aria-label="Treino em andamento">' +
+        '<div class="grabber"></div>' +
+        '<div class="spread"><h3>Você tem um treino em andamento</h3>' +
+          '<button class="btn ghost sm" id="dsClose">Fechar</button></div>' +
+        '<div class="prev-note" style="margin-top:12px"><strong>'+esc(antigo)+'</strong> está aberto com ' +
+          c.done+(c.done===1?' série marcada':' séries marcadas')+' · '+fmt(c.vol,0)+' kg. ' +
+          'Começar outro treino agora joga isso fora.</div>' +
+        '<div style="margin-top:16px"><button class="btn" id="dsVolta">Voltar para '+esc(antigo)+'</button></div>' +
+        '<div style="margin-top:10px"><button class="btn danger" id="dsJoga">Descartar e começar o novo</button></div>' +
+      '</div>';
+    lockScroll(true);
+    function fecha(){ document.getElementById('sheetHost').innerHTML = ''; lockScroll(false); }
+    document.getElementById('scrimDs').addEventListener('click', fecha);
+    document.getElementById('dsClose').addEventListener('click', fecha);
+    document.getElementById('dsVolta').addEventListener('click', function(){
+      fecha(); openTreino(voltarPara);
+    });
+    document.getElementById('dsJoga').addEventListener('click', function(){
+      fecha(); activeSession = null; segue();
+    });
+  }
   function markStarted(){
     if (activeSession && !activeSession.started){
       activeSession.started = true;
@@ -1730,10 +1827,12 @@
     if (!activeSession) return {total:0, done:0, vol:0, pct:0};
     activeSession.items.forEach(function(it){
       var rows = activeSession.log[it.uid] || [];
-      total++;
       var any = false;
-      rows.forEach(function(r){ if (r.done){ any = true; vol += (r.kg||0)*(r.reps||0); } });
-      if (any) done++;
+      rows.forEach(function(r){
+        if (r.warm) return;                       /* aquecimento não entra em nada */
+        total++;
+        if (r.done){ any = true; done++; vol += (r.kg||0)*(r.reps||0); }
+      });
     });
     return {total:total, done:done, vol:vol, pct: total ? Math.round(done/total*100) : 0};
   }
@@ -1748,9 +1847,12 @@
       });
     });
     if (sets.length){
-      var mins = Math.max(1, Math.round((new Date() - activeSession.startedAt)/60000));
+      /* começo é o começo de verdade; sessão esquecida aberta não vira treino de 70 horas */
+      var inicio = activeSession.startedAt || new Date();
+      var mins = Math.max(1, Math.round((new Date() - inicio)/60000));
+      if (mins > 240) mins = 240;
       WORKOUTS.push({id:newId(), treino_id:activeSession.treinoId, treino_name:activeSession.name,
-                     started_at:new Date(), duration_min: mins < 5 ? 58 : mins, sets:sets, swaps:swaps});
+                     started_at:inicio, duration_min: mins, sets:sets, swaps:swaps});
       WORKOUTS.sort(function(a,b){ return a.started_at - b.started_at; });
       reindexDays();
     }
@@ -1781,7 +1883,7 @@
     if (activeSession && activeSession.started){
       html += '<button class="live" id="resumeBtn">' +
         '<span class="live-flag">Treino em andamento</span>' +
-        '<span class="live-name">'+activeSession.name+'</span>' +
+        '<span class="live-name">'+esc(activeSession.name)+'</span>' +
         '<span class="live-meta">'+c.done+'/'+c.total+' séries · '+fmt(c.vol,0)+' kg</span>' +
         '<span class="progress-track"><span class="progress-fill" style="width:'+c.pct+'%"></span></span></button>';
     }
@@ -1806,7 +1908,7 @@
     if (searchTerm.length > 1){
       var term = searchTerm.toLowerCase();
       var hits = EXERCISES.filter(function(e){
-        return exLabel(e).toLowerCase().indexOf(term) >= 0 || GROUPS[e.g].label.toLowerCase().indexOf(term) >= 0;
+        return exLabel(e).toLowerCase().indexOf(term) >= 0 || grupoLabel(e.g).toLowerCase().indexOf(term) >= 0;
       }).slice(0, 25);
       body.innerHTML = hits.length
         ? '<div class="stack"><h2 class="section">'+hits.length+' exercício'+(hits.length>1?'s':'')+'</h2><div class="ex-list">' +
@@ -1815,7 +1917,7 @@
             var em = activeTreinos().filter(function(t){ return t.items.some(function(i){ return i.ex === e.id; }); }).map(function(t){ return t.name; });
             return '<button class="ex" data-carga="'+e.id+'">' +
               '<span class="ex-idx" style="color:'+gColor(e.g)+'">●</span>' +
-              '<span><span class="ex-name">'+exLabel(e)+'</span>' +
+              '<span><span class="ex-name">'+esc(exLabel(e))+'</span>' +
                 '<span class="ex-sub" style="color:var(--muted)">'+(em.length ? em.join(' · ') : 'Fora da ficha')+'</span></span>' +
               '<span class="ex-load">'+(last ? (e.bw ? 'PC' : fmt(last.top)+' kg') : '–')+'<small>última vez</small></span></button>';
           }).join('') + '</div></div>'
@@ -1833,7 +1935,7 @@
         '<div class="vol">' + weekly.map(function(v){
           var c = gColor(v.g);
           return '<div class="vol-row">' +
-            '<span class="vol-chip" style="color:'+c+';border-color:'+c+'">'+GROUPS[v.g].label+'</span>' +
+            '<span class="vol-chip" style="color:'+c+';border-color:'+c+'">'+grupoLabel(v.g)+'</span>' +
             '<span class="vol-track"><span class="vol-bar" style="width:'+(v.sets/maxSets*100)+'%;background:'+c+'"></span></span>' +
             '<span class="vol-val">'+v.sets+'</span></div>';
         }).join('') + '</div></div>' +
@@ -1845,7 +1947,7 @@
           var first = exById[t.items[0] && t.items[0].ex];
           return '<button class="t-card'+(sug?' t-sug':'')+'" data-open="'+t.id+'"><span>' +
               (running ? '<span class="sug-flag">Em andamento</span>' : (sug ? '<span class="sug-flag">Sugerido hoje</span>' : '')) +
-              '<span class="t-name">'+t.name+'</span>' +
+              '<span class="t-name">'+esc(t.name)+'</span>' +
               '<span class="t-count" style="color:'+(first ? gColor(first.g) : 'var(--muted)')+'">'+t.items.length+' exercícios</span>' +
               '<span class="t-day">'+t.weekday+' · '+t.items.reduce(function(a,i){ return a+i.sets; },0)+' séries válidas</span></span>' +
             '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>';
@@ -1856,7 +1958,7 @@
           '<p class="note" style="margin-top:-4px">Saíram da ficha mas continuam aqui. As cargas nunca são apagadas.</p>' +
           arch.map(function(t){
             return '<button class="t-card arch" data-restore="'+t.id+'"><span>' +
-              '<span class="t-name">'+t.name+'</span>' +
+              '<span class="t-name">'+esc(t.name)+'</span>' +
               '<span class="t-count" style="color:var(--muted)">'+t.items.length+' exercícios</span>' +
               '<span class="t-day">Toque para restaurar</span></span>' +
               '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 2.5 5.8"/><path d="M4 18v-5h5"/></svg></button>';
@@ -1897,7 +1999,7 @@
     var html =
       '<button class="back" id="backBtn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Treinos</button>' +
       '<div class="page-head" style="padding-bottom:12px">' + watermark() + '<div>' +
-        '<h1 class="page" style="font-size:26px">'+t.name+'</h1>' +
+        '<h1 class="page" style="font-size:26px">'+esc(t.name)+'</h1>' +
         '<div class="page-sub">'+(live ? 'Em andamento desde ' + hhmm(activeSession.startedAt) : t.weekday + ' · ' + items.length + ' exercícios') + '</div>' +
       '</div></div>';
 
@@ -1928,6 +2030,10 @@
     document.getElementById('backBtn').addEventListener('click', showTreinoList);
     if (!live){
       document.getElementById('startBtn').addEventListener('click', function(){
+        if (sessaoAtrapalha(t.id)){
+          pedirDescarte(t.id, function(){ ensureDraft(t.id); markStarted(); renderTreinoDetail(); });
+          return;
+        }
         ensureDraft(t.id); markStarted(); renderTreinoDetail();
       });
       document.getElementById('archiveBtn').addEventListener('click', function(){ t.archived = true; showTreinoList(); renderCargas(); });
@@ -1953,8 +2059,9 @@
       var e = exById[it.ex];
       if (!e) return '';
       var rows = draft ? activeSession.log[it.uid] : null;
-      var doneCount = rows ? rows.filter(function(r){ return r.done; }).length : 0;
-      var allDone = doneCount > 0;
+      var validas = rows ? rows.filter(function(r){ return !r.warm; }) : [];
+      var doneCount = validas.filter(function(r){ return r.done; }).length;
+      var allDone = validas.length > 0 && doneCount === validas.length;
       var last = lastSessionFor(it.ex);
       var loadText, loadLabel;
       if (doneCount){
@@ -1967,8 +2074,8 @@
       } else { loadText = '–'; loadLabel = 'sem histórico'; }
       return '<div class="ex'+(live?' ex-drag':'')+'" data-done="'+(allDone?1:0)+'" data-uid="'+it.uid+'" role="button" tabindex="0">' +
         '<span class="ex-idx">'+(allDone ? '✓' : String(i+1).padStart(2,'0'))+'</span>' +
-        '<span><span class="ex-name">'+exLabel(e)+'</span>' +
-          '<span class="ex-sub" style="color:'+gColor(e.g)+'">'+GROUPS[e.g].label+
+        '<span><span class="ex-name">'+esc(exLabel(e))+'</span>' +
+          '<span class="ex-sub" style="color:'+gColor(e.g)+'">'+grupoLabel(e.g)+
             '<span style="color:var(--line)"> | </span><span style="color:var(--muted)">'+
               (it.rmin && it.rmax ? it.sets+' × '+it.rmin+'–'+it.rmax : it.sets+(it.sets===1?' série':' séries'))+
               (it.warm ? ' + '+it.warm+' aquec.' : '')+'</span></span>' +
@@ -1979,11 +2086,14 @@
         '</div>';
     }).join('');
 
-    Array.prototype.forEach.call(list.querySelectorAll('.ex'), function(btn, idx){
+    Array.prototype.forEach.call(list.querySelectorAll('.ex'), function(btn){
       function open(ev){
         if (ev.target.closest && ev.target.closest('[data-grip]')) return;
+        var uid = btn.getAttribute('data-uid');
+        if (sessaoAtrapalha(t.id)){ pedirDescarte(t.id, function(){ ensureDraft(t.id); renderTreinoDetail(); }); return; }
         ensureDraft(t.id);
-        openLogSheet(activeSession.items[idx].uid);
+        var alvo = activeSession.items.filter(function(x){ return x.uid === uid; })[0] || activeSession.items[0];
+        if (alvo) openLogSheet(alvo.uid);
       }
       btn.addEventListener('click', open);
       btn.addEventListener('keydown', function(ev){
@@ -2011,11 +2121,11 @@
 
     document.getElementById('sheetHost').innerHTML =
       '<div class="scrim" id="scrim"></div>' +
-      '<div class="sheet" role="dialog" aria-label="Registrar '+exLabel(e)+'">' +
+      '<div class="sheet" role="dialog" aria-label="Registrar '+esc(exLabel(e))+'">' +
         '<div class="grabber"></div>' +
-        '<div class="spread"><h3>'+exLabel(e)+'</h3><button class="btn ghost sm" id="sheetClose">Fechar</button></div>' +
+        '<div class="spread"><h3>'+esc(exLabel(e))+'</h3><button class="btn ghost sm" id="sheetClose">Fechar</button></div>' +
         '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' +
-          '<span class="pill" style="background:transparent;border:1px solid '+gColor(e.g)+';color:'+gColor(e.g)+'">'+GROUPS[e.g].label+'</span>' +
+          '<span class="pill" style="background:transparent;border:1px solid '+gColor(e.g)+';color:'+gColor(e.g)+'">'+grupoLabel(e.g)+'</span>' +
           (pr ? '<span class="pill">PR '+(pr.bw ? 'PC' : fmt(pr.kg)+' kg')+' × '+pr.reps+'</span>' : '') +
         '</div>' +
         (item.from && exById[item.from] ? '<div class="note" style="margin-top:9px">No lugar de <strong>'+exLabel(exById[item.from])+'</strong> · '+FAM_LABEL[e.fam]+'</div>' : '') +
@@ -2051,6 +2161,8 @@
     });
     document.getElementById('setMinus').addEventListener('click', function(){
       if (rows.length <= 1) return;
+      var ultima = rows[rows.length - 1];
+      if (ultima.done && !confirmarTirar('setMinus', 'Tirar a série '+rows.length+'?')) return;
       rows.pop();
       renderSetRows(item, rows); paintSets(); renderTreinoDetail();
     });
@@ -2058,8 +2170,11 @@
 
     document.getElementById('swapBtn').addEventListener('click', function(){ openSwapSheet(uid); });
     document.getElementById('removeBtn').addEventListener('click', function(){
+      var feitas = rows.filter(function(r){ return r.done; }).length;
+      if (feitas && !confirmarTirar('removeBtn', 'Tirar com '+feitas+(feitas===1?' série marcada?':' séries marcadas?'))) return;
       activeSession.items = activeSession.items.filter(function(x){ return x.uid !== uid; });
       delete activeSession.log[uid];
+      touchState();
       closeSheet();
     });
   }
@@ -2071,7 +2186,7 @@
     h.forEach(function(p){
       p.detail.forEach(function(x){
         var w = setKg(x, p.date);
-        if (w > best || (w === best && x.reps > bestReps)){ best = w; bestReps = x.reps; }
+        if (melhorQue(w, x.reps, {kg:best, reps:bestReps})){ best = w; bestReps = x.reps; }
       });
     });
     if (kg > best) return {kind:'carga', text:'Recorde de carga · ' + fmt(kg) + ' kg (era ' + fmt(best) + ')'};
@@ -2100,6 +2215,17 @@
     toastTimer = setTimeout(function(){ el.classList.remove('on'); }, 3200);
   }
 
+  /* dois toques pra apagar coisa marcada: o primeiro só avisa */
+  var armados = {};
+  function confirmarTirar(id, aviso){
+    var b = document.getElementById(id);
+    if (armados[id]) { armados[id] = false; if (b) b.textContent = b.getAttribute('data-txt') || b.textContent; return true; }
+    armados[id] = true;
+    if (b && !b.getAttribute('data-txt')) b.setAttribute('data-txt', b.textContent);
+    toast(aviso + ' Toque de novo pra confirmar.', 'warn');
+    setTimeout(function(){ armados[id] = false; }, 4000);
+    return false;
+  }
   function renderSetRows(item, rows){
     var host = document.getElementById('setRows');
     if (!host) return;
@@ -2108,14 +2234,23 @@
       var ref = last && last.detail[i] ? last.detail[i] : null;
       var kgVal = r.kg !== null ? r.kg : (bw ? '' : (ref ? setKg(ref, last.date) : (last ? last.top : '')));
       var repsVal = r.reps !== null ? r.reps : (ref ? ref.reps : (last ? last.topReps : (item.rmin || '')));
-      return '<div class="set-row" data-done="'+(r.done?1:0)+'">' +
-        '<span class="set-n">'+(i+1)+'</span>' +
+      return '<div class="set-row'+(r.warm?' is-warm':'')+'" data-done="'+(r.done?1:0)+'">' +
+        '<button class="set-n" data-warm="'+i+'" aria-label="'+(r.warm?'Série '+(i+1)+', aquecimento. Toque para virar série válida':'Série '+(i+1)+'. Toque para marcar como aquecimento')+'" title="aquecimento">'+(r.warm?'A':(i+1))+'</button>' +
         '<input id="set-'+item.uid+'-'+i+'-kg" type="number" step="0.5" inputmode="decimal" value="'+kgVal+'" placeholder="'+(bw?'PC':'0')+'" aria-label="Carga série '+(i+1)+'">' +
         '<input id="set-'+item.uid+'-'+i+'-reps" type="number" inputmode="numeric" value="'+repsVal+'" aria-label="Repetições série '+(i+1)+'">' +
         '<button class="check" data-check="'+i+'" aria-label="Marcar série '+(i+1)+'">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></button></div>';
     }).join('');
 
+    Array.prototype.forEach.call(host.querySelectorAll('[data-warm]'), function(btn){
+      btn.addEventListener('click', function(){
+        var i = +btn.getAttribute('data-warm');
+        rows[i].warm = !rows[i].warm;
+        touchState();
+        renderSetRows(item, rows);
+        toast(rows[i].warm ? 'Série '+(i+1)+' virou aquecimento — fica fora das contas' : 'Série '+(i+1)+' voltou a valer');
+      });
+    });
     Array.prototype.forEach.call(host.querySelectorAll('[data-check]'), function(btn){
       btn.addEventListener('click', function(){
         var i = +btn.getAttribute('data-check'), r = rows[i];
@@ -2124,7 +2259,7 @@
         if (r.done) markStarted();
         r.kg = parseFloat(document.getElementById('set-'+item.uid+'-'+i+'-kg').value) || (bw ? bodyweightAt(today) : 0);
         r.reps = parseInt(document.getElementById('set-'+item.uid+'-'+i+'-reps').value, 10) || 0;
-        if (!wasDone && r.done){
+        if (!wasDone && r.done && !r.warm){
           var pr = prCheck(item.ex, r.kg, r.reps);
           if (pr) toast(pr.text, 'pr');
         }
@@ -2163,7 +2298,7 @@
         '<div class="grabber"></div>' +
         '<div class="spread"><h3>'+(item ? 'Trocar exercício' : 'Adicionar exercício')+'</h3>' +
           '<button class="btn ghost sm" id="swapClose">Fechar</button></div>' +
-        (item ? '<div class="note" style="margin-top:8px">A carga vai para o exercício escolhido. Vale só para hoje.</div>' : '') +
+        (item ? '<div class="note" style="margin-top:8px">As séries já marcadas vão junto para o exercício escolhido. Vale só para hoje.</div>' : '') +
         '<div class="search" style="margin-top:14px;margin-bottom:14px">' +
           '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
           '<input id="swapSearch" type="search" placeholder="Buscar no catálogo..." aria-label="Buscar exercício"></div>' +
@@ -2189,8 +2324,8 @@
     function card(e){
       var last = lastSessionFor(e.id);
       return '<button class="swap-item" data-pick="'+e.id+'">' +
-        '<span><span class="n">'+e.name+'</span>' +
-          '<span class="e" style="color:'+gColor(e.g)+'">'+GROUPS[e.g].label+' · '+e.eq+'</span></span>' +
+        '<span><span class="n">'+esc(e.name)+'</span>' +
+          '<span class="e" style="color:'+gColor(e.g)+'">'+grupoLabel(e.g)+' · '+e.eq+'</span></span>' +
         '<span class="l">'+(last ? (e.bw ? 'PC' : fmt(last.top)+' kg') : 'sem histórico')+'</span></button>';
     }
     var html = '';
@@ -2227,7 +2362,7 @@
       item.from = item.from || item.ex;
       if (item.from === newEx) item.from = null;
       item.ex = newEx;
-      activeSession.log[item.uid].forEach(function(r){ r.kg = null; r.reps = null; r.done = false; });
+      /* a carga acompanha a troca, que é o que a tela promete */
       touchState();
       openLogSheet(item.uid);
     } else {
@@ -2357,6 +2492,42 @@
     return (p && p.target && p.target[chave]) || 0;
   }
 
+  /* ---------- esforço percebido (RPE 1-10) ----------
+     sem cinta cardíaca é assim que Strava e Apple medem intensidade.
+     vigoroso conta em dobro, igual Garmin e Fitbit fazem com minuto em zona. */
+  function faixaRpe(r){
+    r = parseInt(r, 10) || 0;
+    if (!r) return null;
+    if (r <= 3) return {nome:'leve', peso:1};
+    if (r <= 6) return {nome:'moderado', peso:1};
+    return {nome:'vigoroso', peso:2};
+  }
+  function minEquiv(l){
+    var f = faixaRpe(l.rpe);
+    return Math.round((l.duration || 0) * (f ? f.peso : 1));
+  }
+  function ehVigoroso(l){ var f = faixaRpe(l.rpe); return !!f && f.peso > 1; }
+
+  /* ---------- quais protocolos valiam numa semana ----------
+     sem isso a meta de uma semana de agosto seria a do protocolo de hoje. */
+  function protocolosDaSemana(off){
+    var ws = weekStart(off), we = addDays(ws, 7);
+    return CARDIOS.filter(function(c){
+      if (c.created_at && new Date(c.created_at) >= we) return false;
+      if (c.archived) return !!(c.archived_at && new Date(c.archived_at) >= ws);
+      return true;
+    });
+  }
+  /* aderência no estilo TrainingPeaks: verde dentro de ±20% do planejado */
+  function aderencia(feito, plano, jaPassou){
+    if (!plano) return feito ? 'ad-extra' : '';
+    if (!feito) return jaPassou ? 'ad-nao' : '';
+    var r = feito / plano;
+    if (r >= 0.8 && r <= 1.2) return 'ad-ok';
+    if ((r >= 0.5 && r < 0.8) || (r > 1.2 && r <= 1.5)) return 'ad-quase';
+    return 'ad-fora';
+  }
+
   function tipoExiste(nome){ return tipoOficial(nome) || null; }
   /* lista de tipos para escolher, com busca */
   function casaTipo(t, q){
@@ -2386,16 +2557,15 @@
   function cardioDetails(l){
     var d = [];
     if (l.distance) d.push(fmt(l.distance,1)+' km');
-    if (l.kcal) d.push(l.kcal+' kcal');
     if (l.incline) d.push(l.incline+'% inc.');
     if (l.level) d.push('nível '+l.level);
+    if (l.rpe) d.push('esforço '+l.rpe);
     return d;
   }
   function alvoTexto(tg){
     var parts = [];
     if (tg.duration) parts.push(tg.duration + ' min');
     if (tg.distance) parts.push(fmt(tg.distance,1) + ' km');
-    if (tg.kcal) parts.push(tg.kcal + ' kcal');
     if (tg.incline) parts.push(tg.incline + '% inc.');
     if (tg.speed) parts.push(fmt(tg.speed,1) + ' km/h');
     if (tg.level) parts.push('nível ' + tg.level);
@@ -2415,7 +2585,6 @@
     if (t.speed) parts.push(fmt(t.speed,1) + ' km/h');
     if (t.level) parts.push('nível ' + t.level);
     if (t.distance) parts.push(fmt(t.distance,1) + ' km');
-    if (t.kcal) parts.push(t.kcal + ' kcal');
     if (t.blocks) parts.push(t.blocks);
     return parts;
   }
@@ -2439,25 +2608,22 @@
     for (var i = 0; i < 7; i++){
       var dd = addDays(ws, i), k = dayKey(dd), isToday = k === dayKey(today);
       var doneTxt = '–', mark = '', state = 'off', extra = '';
-      var temTreino = !!workoutsByDay[k] || !!MANUAL[k];
+      var temTreino = !!(workoutsByDay[k] && workoutsByDay[k].length) || !!MANUAL[k];
       var temCardio = (cardioByDay[k] || []).length > 0;
       if (temTreino && temCardio) extra = ' dia-duplo';
       else if (temTreino) extra = ' dia-treino';
       else if (temCardio) extra = ' dia-cardio';
       if (mode === 'cardio'){
         var dc = cardioByDay[k] || [];
-        var sc = activeCardios().filter(function(c){ return !!parteDoDia(c, i); });
-        if (dc.length){
-          state = 'done'; mark = '✓';
-          var dm = dc.reduce(function(a,l){ return a+(l.duration||0); },0);
-          doneTxt = dm || dc.reduce(function(a,l){ return a+(l.kcal||0); },0) || 0;
-        } else if (sc.length){
-          state = 'plan'; mark = '·';
-          var pm = sc.reduce(function(a,c){ return a+alvoDoDia(c, i, 'duration'); },0);
-          doneTxt = pm || sc.reduce(function(a,c){ return a+alvoDoDia(c, i, 'kcal'); },0) || 0;
-        }
+        var sc = protocolosDaSemana(off).filter(function(c){ return !!parteDoDia(c, i); });
+        var feitoMin = dc.reduce(function(a,l){ return a+(l.duration||0); },0);
+        var planMin  = sc.reduce(function(a,c){ return a+alvoDoDia(c, i, 'duration'); },0);
+        if (dc.length){ state = 'done'; mark = '✓'; doneTxt = feitoMin || '–'; }
+        else if (planMin){ state = 'plan'; mark = '·'; doneTxt = planMin; }
+        /* na aba Cardio a cor é de aderência, não o verde do calendário de treinos */
+        extra = ' ' + aderencia(feitoMin, planMin, dd < today && k !== dayKey(today));
       } else {
-        var w = workoutsByDay[k];
+        var w = (workoutsByDay[k] || []).length;
         var st = activeTreinos().filter(function(t){ return t.dow === i; })[0];
         if (w || MANUAL[k]){ state = 'done'; mark = '✓'; }
         else if (st){ state = 'plan'; mark = '·'; }
@@ -2485,7 +2651,12 @@
       '</div><div class="wk">'+weekStripHtml(off, mode)+'</div>' +
       (mode === 'treino'
         ? '<div class="note" style="margin-top:9px;text-align:center">Toque num dia vazio para marcar que treinou</div>'
-        : '') + '</div>';
+        : '<div class="lg-row" style="justify-content:center">' +
+            '<span><i style="background:color-mix(in srgb, var(--good) 34%, var(--surface-2))"></i>no alvo</span>' +
+            '<span><i style="background:color-mix(in srgb, #C9A227 30%, var(--surface-2))"></i>perto</span>' +
+            '<span><i style="background:color-mix(in srgb, #C9772A 30%, var(--surface-2))"></i>longe</span>' +
+            '<span><i style="background:var(--surface-2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 55%, transparent)"></i>sem plano</span>' +
+          '</div>') + '</div>';
   }
 
   function bindWeekCard(id, get, set, rerender, mode){
@@ -2499,7 +2670,8 @@
     bindAll(card, '[data-wkday]', function(b){
       var k = b.getAttribute('data-wkday');
       // dia vazio na aba de treinos: um toque marca verde, outro desmarca
-      if (mode === 'treino' && !workoutsByDay[k]){
+      if (mode === 'treino' && !(workoutsByDay[k] && workoutsByDay[k].length)){
+        if (dayFromIso(keyToIso(k)) > hoje()){ toast('Esse dia ainda nem chegou', 'warn'); return; }
         if (MANUAL[k]){ delete MANUAL[k]; toast('Marcação removida'); }
         else { MANUAL[k] = {treino_id:null}; toast('Dia marcado como treinado'); }
         rerender(); renderAgenda();
@@ -2536,28 +2708,31 @@
 
     var ws = weekStart(cardioWeek), we = addDays(ws, 7);
     var weekLogs = CARDIO_LOGS.filter(function(l){ return l.date >= ws && l.date < we; });
-    var mins = weekLogs.reduce(function(a,l){ return a + (l.duration || 0); }, 0);
-    var kcal = weekLogs.reduce(function(a,l){ return a + (l.kcal || 0); }, 0);
-    var planned = 0, plannedKcal = 0;
-    activeCardios().forEach(function(c){
+    var mins  = weekLogs.reduce(function(a,l){ return a + (l.duration || 0); }, 0);
+    var equiv = weekLogs.reduce(function(a,l){ return a + minEquiv(l); }, 0);
+    var minVig = weekLogs.filter(ehVigoroso).reduce(function(a,l){ return a + (l.duration||0); }, 0);
+    /* o plano da semana usa os protocolos que valiam naquela semana */
+    var planned = 0;
+    protocolosDaSemana(cardioWeek).forEach(function(c){
       partsDe(c).forEach(function(pt){
-        var n = (pt.days || []).length, tg = pt.target || {};
-        planned += n * (tg.duration || 0);
-        plannedKcal += n * (tg.kcal || 0);
+        planned += (pt.days || []).length * ((pt.target || {}).duration || 0);
       });
     });
-    /* mostra as unidades que a semana realmente usa */
-    var temMin = planned > 0 || mins > 0, temKcal = plannedKcal > 0 || kcal > 0;
-    var pedacos = [];
-    if (temMin || !temKcal) pedacos.push(mins + ' de ' + planned + ' min');
-    if (temKcal) pedacos.push(kcal + ' de ' + plannedKcal + ' kcal');
-    var resumo = pedacos.join(' · ');
+    /* o alvo é a minha meta, se eu tiver posto uma; senão é o próprio plano */
+    var meta = SETTINGS.metaSemanal || planned;
+    var resumo = meta ? (mins + ' de ' + meta + ' min') : (mins + ' min');
+    /* a conta na cara, pra ninguém ficar adivinhando de onde vem o número */
+    var conta = weekLogs.length + (weekLogs.length === 1 ? ' sessão' : ' sessões');
+    if (minVig) conta += ' · ' + minVig + ' min no vigoroso (' + equiv + ' min equivalentes)';
+    if (SETTINGS.metaSemanal && planned) conta += ' · plano do protocolo: ' + planned + ' min';
     var isThisWeek = cardioWeek === 0;
 
     host.innerHTML =
       '<div class="page-head">' + watermark('var(--cardio)') + '<div>' +
         '<h1 class="page">Cardio</h1>' +
         '<div class="page-sub">'+resumo+' '+(isThisWeek ? 'nesta semana' : 'na semana')+'</div>' +
+        (meta ? '<div class="meta-bar" style="max-width:260px"><i style="width:'+Math.min(100, Math.round(mins/meta*100))+'%"></i></div>' : '') +
+        '<div class="note" style="margin-top:6px">'+conta+'</div>' +
       '</div><div class="head-actions">' +
         '<button class="icon-btn" id="cardioShare" aria-label="Importar ou exportar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M5 15v4.5h14V15"/></svg></button>' +
         '<button class="icon-btn primary" id="cardioNew" aria-label="Novo protocolo" style="background:var(--cardio);border-color:var(--cardio)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>' +
@@ -2571,27 +2746,32 @@
           return '<div class="cd-card'+(istoday?' cd-today':'')+'">' +
             '<button class="cd-main" data-cardio="'+c.id+'">' +
               (istoday ? '<span class="sug-flag" style="color:var(--cardio)">Marcado para hoje</span>' : '') +
-              '<span class="cd-name">'+c.name+'</span>' +
+              '<span class="cd-name">'+esc(c.name)+'</span>' +
               '<span class="cd-meta">'+resumoPartes(c)+'</span></button>' +
             '<button class="cd-check'+(done?' on':'')+'" data-done="'+c.id+'" aria-label="Marcar como feito">' +
               '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(done?3:2.2)+'" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>' +
             '</button></div>';
         }).join('') +
         (activeCardios().length ? '' : '<div class="empty">Nenhum protocolo ainda. Toque no + para criar o primeiro.</div>') +
-        '<button class="btn dashed" id="cardioAvulso">+ Fiz outro cardio hoje</button></div>' +
+        '<button class="btn dashed" id="cardioAvulso">+ Registrar outro cardio</button></div>' +
         (CARDIOS.filter(function(c){ return c.archived; }).length
           ? '<div class="stack"><h2 class="section">Arquivados</h2>' +
             CARDIOS.filter(function(c){ return c.archived; }).map(function(c){
               return '<button class="cd-card" style="opacity:.6;display:block" data-unarch="'+c.id+'">' +
-                '<span class="cd-name">'+c.name+'</span>' +
+                '<span class="cd-name">'+esc(c.name)+'</span>' +
                 '<span class="cd-meta">Toque para restaurar</span></button>';
             }).join('') + '</div>' : '') +
+        '<div class="stack"><h2 class="section">Meta da semana</h2>' +
+          '<button class="ed-row" id="cardioMeta" style="width:100%;text-align:left">' +
+            '<span><span class="ed-n">'+(SETTINGS.metaSemanal ? SETTINGS.metaSemanal+' min por semana' : 'Sem meta — segue o plano')+'</span>' +
+              '<span class="ed-e">'+(SETTINGS.metaSemanal ? 'toque para mudar' : (planned ? 'o alvo é o plano do protocolo: '+planned+' min' : 'toque para definir uma'))+'</span></span>' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>' +
         '<div class="stack grid-cards"><h2 class="section">Sessões de '+weekRangeLabel(cardioWeek)+'</h2>' +
           (weekLogs.length ? '<div class="card"><div class="pr-list">' + weekLogs.slice().reverse().map(function(l){
             var det = cardioDetails(l);
             return '<button class="pr-row" data-log="'+l.id+'"><div><div class="pr-name">'+l.name+'</div>' +
               '<div class="pr-date" style="color:var(--cardio)">'+shortDate(l.date)+(det.length?' · '+det.join(' · '):'')+'</div></div>' +
-              '<div class="pr-val">'+l.duration+'<small>min</small></div></button>';
+              '<div class="pr-val">'+(l.duration || '–')+'<small>min</small></div></button>';
           }).join('') + '</div></div>' : '<div class="empty">Nenhum cardio nesta semana.</div>') +
         '</div></div>';
 
@@ -2608,9 +2788,11 @@
       scrollTop();
     });
     bindAll(host, '[data-done]', function(b){ openCardioLogSheet(b.getAttribute('data-done')); });
+    document.getElementById('cardioMeta').addEventListener('click', openMetaSheet);
     bindAll(host, '[data-log]', function(b){ openCardioEditSheet(b.getAttribute('data-log')); });
     bindAll(host, '[data-unarch]', function(b){
-      cardioById[b.getAttribute('data-unarch')].archived = false; renderCardio();
+      var cx = cardioById[b.getAttribute('data-unarch')];
+      cx.archived = false; cx.archived_at = null; touchState(); renderCardio();
     });
   }
 
@@ -2625,7 +2807,6 @@
     // progressão: na mesma configuração, mais distância (ou mais tempo) no mesmo protocolo
     var M;
     if (logs.filter(function(l){ return l.distance; }).length > 1) M = {k:'distance', lbl:'Distância por sessão', un:'km', dec:1};
-    else if (logs.filter(function(l){ return l.kcal; }).length > 1) M = {k:'kcal', lbl:'Calorias por sessão', un:'kcal', dec:0};
     else M = {k:'duration', lbl:'Duração por sessão', un:'min', dec:0};
     var pts = logs.filter(function(l){ return l[M.k]; });
     var chart = '';
@@ -2651,7 +2832,7 @@
     document.getElementById('cardioDetail').innerHTML =
       '<button class="back" id="cardioBack"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Cardio</button>' +
       '<div class="page-head" style="padding-bottom:12px">' + watermark('var(--cardio)') + '<div>' +
-        '<h1 class="page" style="font-size:26px">'+c.name+'</h1>' +
+        '<h1 class="page" style="font-size:26px">'+esc(c.name)+'</h1>' +
         '<div class="page-sub">'+partsDe(c).length+(partsDe(c).length===1?' tipo':' tipos')+(c.note ? ' · ' + c.note : '')+'</div></div></div>' +
       '<div style="margin-bottom:18px"><button class="btn" id="cardioLogBtn" style="background:var(--cardio)">' +
         (doneToday(c.id) ? 'Registrar outra sessão hoje' : 'Marcar como feito hoje') + '</button></div>' +
@@ -2666,7 +2847,7 @@
           logs.slice().reverse().map(function(l){
             return '<button class="pr-row" data-log="'+l.id+'"><div><div class="pr-name">'+longDate(l.date)+'</div>' +
               '<div class="pr-date">'+cardioDetails(l).join(' · ')+'</div></div>' +
-              '<div class="pr-val">'+l.duration+'<small>min</small></div></button>';
+              '<div class="pr-val">'+(l.duration || '–')+'<small>min</small></div></button>';
           }).join('') + '</div></div></div>'
         : '<div class="empty">Sem sessões registradas.</div>') +
       '<div style="margin-top:22px"><button class="btn ghost" id="cardioEdit">Editar protocolo</button></div>' +
@@ -2681,7 +2862,7 @@
     document.getElementById('cardioLogBtn').addEventListener('click', function(){ openCardioLogSheet(c.id); });
     document.getElementById('cardioEdit').addEventListener('click', function(){ openCardioEditor(c.id); });
     document.getElementById('cardioArchive').addEventListener('click', function(){
-      c.archived = true; openCardioId = null;
+      c.archived = true; c.archived_at = new Date().toISOString(); openCardioId = null;
       document.getElementById('cardioDetail').hidden = true;
       document.getElementById('cardioList').hidden = false;
       renderCardio();
@@ -2696,15 +2877,44 @@
     return dayFromIso(v);
   }
 
-  function cardioFormFields(v){
+  function cardioFormFields(v, meta){
+    meta = meta || {};
+    function ph(k, d){ return meta[k] ? String(meta[k]).replace('.', ',') : d; }
     return '<div class="row" style="margin-top:12px;gap:8px">' +
-        '<div class="field" style="flex:1"><input id="kDur" type="number" inputmode="numeric" value="'+(v.duration||'')+'" placeholder="30" aria-label="Duração"><label for="kDur">min</label></div>' +
-        '<div class="field" style="flex:1"><input id="kDist" type="number" step="0.1" inputmode="decimal" value="'+(v.distance||'')+'" placeholder="3,5" aria-label="Distância"><label for="kDist">km</label></div></div>' +
+        '<div class="field" style="flex:1"><input id="kDur" type="number" inputmode="numeric" value="'+(v.duration||'')+'" placeholder="'+ph('duration','30')+'" aria-label="Duração"><label for="kDur">min</label></div>' +
+        '<div class="field" style="flex:1"><input id="kDist" type="number" step="0.1" inputmode="decimal" value="'+(v.distance||'')+'" placeholder="'+ph('distance','3,5')+'" aria-label="Distância"><label for="kDist">km</label></div></div>' +
       '<div class="row" style="margin-top:8px;gap:8px">' +
-        '<div class="field" style="flex:1"><input id="kInc" type="number" step="0.5" inputmode="decimal" value="'+(v.incline||'')+'" placeholder="12" aria-label="Inclinação"><label for="kInc">% inc.</label></div>' +
-        '<div class="field" style="flex:1"><input id="kLvl" type="number" inputmode="numeric" value="'+(v.level||'')+'" placeholder="8" aria-label="Nível"><label for="kLvl">nível</label></div></div>' +
-      '<div class="row" style="margin-top:8px"><div class="field" style="flex:1">' +
-        '<input id="kCal" type="number" inputmode="numeric" value="'+(v.kcal||'')+'" placeholder="300" aria-label="Calorias"><label for="kCal">kcal</label></div></div>';
+        '<div class="field" style="flex:1"><input id="kInc" type="number" step="0.5" inputmode="decimal" value="'+(v.incline||'')+'" placeholder="'+ph('incline','12')+'" aria-label="Inclinação"><label for="kInc">% inc.</label></div>' +
+        '<div class="field" style="flex:1"><input id="kLvl" type="number" inputmode="numeric" value="'+(v.level||'')+'" placeholder="'+ph('level','8')+'" aria-label="Nível"><label for="kLvl">nível</label></div></div>' +
+      '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:7px">Esforço</div>' +
+        rpeChipsHtml(v.rpe) +
+        '<input type="hidden" id="kRpe" value="'+(v.rpe||'')+'">' +
+        '<div class="note" id="kRpeTxt" style="margin-top:7px">'+rpeLegenda(v.rpe)+'</div></div>';
+  }
+  function rpeChipsHtml(v){
+    var out = '<div class="rpe-row">';
+    for (var i = 1; i <= 10; i++){
+      var cls = i <= 3 ? 'lo' : (i >= 7 ? 'hi' : '');
+      out += '<button type="button" class="rpe-b '+cls+(+v === i ? ' on' : '')+'" data-rpe="'+i+'">'+i+'</button>';
+    }
+    return out + '</div>';
+  }
+  function rpeLegenda(v){
+    var f = faixaRpe(v);
+    if (!f) return '1 fácil · 5 dá pra conversar · 10 no limite — opcional';
+    return 'esforço ' + v + ' · ' + f.nome + (f.peso > 1 ? ' — conta em dobro na meta' : '');
+  }
+  function ligarRpe(){
+    bindAll(document.getElementById('sheetHost'), '[data-rpe]', function(b){
+      var v = +b.getAttribute('data-rpe');
+      var inp = document.getElementById('kRpe');
+      if (+inp.value === v) v = 0;                 /* tocar de novo desmarca */
+      inp.value = v || '';
+      Array.prototype.forEach.call(document.querySelectorAll('[data-rpe]'), function(x){
+        x.classList.toggle('on', +x.getAttribute('data-rpe') === v);
+      });
+      document.getElementById('kRpeTxt').textContent = rpeLegenda(v);
+    });
   }
   function readCardioForm(){
     return {
@@ -2712,21 +2922,38 @@
       distance: parseFloat(document.getElementById('kDist').value) || null,
       incline: parseFloat(document.getElementById('kInc').value) || null,
       level: parseInt(document.getElementById('kLvl').value, 10) || null,
-      kcal: parseInt(document.getElementById('kCal').value, 10) || null
+      rpe: parseInt(document.getElementById('kRpe').value, 10) || null
     };
+  }
+  /* o dia que a folha abre: na semana atual é hoje, numa semana passada é um dia daquela semana */
+  function diaPadraoDaSemana(c){
+    if (!cardioWeek) return new Date();
+    var ws = weekStart(cardioWeek), ultimo = null, planejado = null, hk = dayKey(today);
+    for (var i = 0; i < 7; i++){
+      var dd = addDays(ws, i);
+      if (dayKey(dd) === hk) { ultimo = dd; break; }
+      if (dd > today) break;
+      ultimo = dd;
+      if (c && parteDoDia(c, i)) planejado = dd;
+    }
+    return planejado || ultimo || addDays(ws, 6);
   }
 
   var kTipoBusca = '';
   function openCardioLogSheet(cardioId, diaKey){
     var c = cardioId ? cardioById[cardioId] : null;
-    var quando = diaKey ? dayFromIso(keyToIso(diaKey)) : new Date();
-    var pt = c ? parteDoDia(c, quando.getDay()) : null;
-    if (c && !pt) pt = partsDe(c)[0];
-    var t = (pt && pt.target) || {};
+    var quando = diaKey ? dayFromIso(keyToIso(diaKey)) : diaPadraoDaSemana(c);
+    var pt = c ? (parteDoDia(c, quando.getDay()) || partsDe(c)[0]) : null;
     var tipo = (pt && tipoExiste(pt.tipo)) || null;
+    var tipoNaMao = false;        /* se eu escolhi o tipo na mão, trocar o dia não mexe nele */
     var escolhendo = !tipo;
+    var form = {};                /* o que já foi digitado, pra não perder ao re-renderizar */
     kTipoBusca = '';
 
+    function guardaForm(){
+      if (!document.getElementById('kDur')) return;
+      form = readCardioForm();
+    }
     function render(){
       document.getElementById('sheetHost').innerHTML =
         '<div class="scrim" id="scrimC"></div>' +
@@ -2760,37 +2987,65 @@
     function ligarChips(){
       bindAll(document.getElementById('kTipos'), '[data-tipo]', function(b){
         tipo = b.getAttribute('data-tipo');
+        tipoNaMao = true;
         escolhendo = false;
         render();
       });
     }
 
+    function dicaHtml(){
+      var t = (pt && pt.target) || {};
+      var a = alvoTexto(t);
+      if (!c || !a) return '';
+      var mesmoDia = !!parteDoDia(c, quando.getDay());
+      return '<div class="prev-note" id="kDica">' +
+        (mesmoDia ? 'Meta de ' + WEEKDAYS[quando.getDay()].toLowerCase() : 'Meta do protocolo') +
+        ': <strong>' + (pt.tipo || '') + '</strong> · ' + a + '</div>';
+    }
     function painelDados(){
-      return (c ? '<div class="note" style="margin-top:8px">Veio do protocolo <strong>'+c.name+'</strong>. Mude o que for diferente e salve.</div>' : '') +
+      var t = (pt && pt.target) || {};
+      return (c ? '<div class="note" style="margin-top:8px">Protocolo <strong>'+esc(c.name)+'</strong>. Preencha o que você fez de verdade.</div>' : '') +
         '<button class="ed-row" id="kTipoBtn" style="width:100%;margin-top:14px;text-align:left">' +
           '<span><span class="ed-n">'+tipo+'</span>' +
             '<span class="ed-e">toque para trocar o tipo</span></span>' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>' +
-        cardioFormFields({duration:t.duration, distance:t.distance, incline:t.incline, level:t.level, kcal:t.kcal}) +
         '<div style="margin-top:12px"><div class="field">' +
           '<input id="kDate" type="date" value="'+isoDay(quando)+'" max="'+isoDay(new Date())+'" aria-label="Dia">' +
           '<label for="kDate">dia</label></div></div>' +
+        dicaHtml() +
+        cardioFormFields(form, t) +
         '<div style="margin-top:16px"><button class="btn" id="kSave" style="background:var(--cardio)">Salvar</button></div>';
     }
     function ligarDados(){
+      ligarRpe();
       document.getElementById('kTipoBtn').addEventListener('click', function(){
-        escolhendo = true; kTipoBusca = ''; render();
+        guardaForm(); escolhendo = true; kTipoBusca = ''; render();
+      });
+      document.getElementById('kDate').addEventListener('change', function(){
+        guardaForm();
+        quando = lerData('kDate', quando);
+        if (c){
+          var np = parteDoDia(c, quando.getDay()) || partsDe(c)[0];
+          pt = np;
+          if (!tipoNaMao){
+            var nt = (np && tipoExiste(np.tipo)) || tipo;
+            if (nt !== tipo){ tipo = nt; }
+          }
+        }
+        render();
       });
       document.getElementById('kSave').addEventListener('click', function(){
         var f = readCardioForm();
-        if (!f.duration && !f.kcal && !f.distance){ document.getElementById('kDur').focus(); return; }
+        if (!f.duration){
+          toast('Quanto tempo durou?', 'warn');
+          document.getElementById('kDur').focus(); return;
+        }
         CARDIO_LOGS.push({
           id:newId(),
           cardio_id: c ? c.id : null,
-          name: tipo,
-          modality: tipo,
+          name: tipo, modality: tipo,
           date: lerData('kDate', quando), duration: f.duration, distance: f.distance,
-          incline: f.incline, level: f.level, kcal: f.kcal
+          incline: f.incline, level: f.level, rpe: f.rpe
         });
         CARDIO_LOGS.sort(function(a,b){ return a.date - b.date; });
         reindexDays(); touchState(); closeCardioSheet(); renderAgenda();
@@ -2808,7 +3063,7 @@
     function limpaAlvo(t){
       t = t || {};
       return {duration:t.duration||'', distance:t.distance||'', incline:t.incline||'',
-              level:t.level||'', speed:t.speed||'', kcal:t.kcal||''};
+              level:t.level||'', speed:t.speed||''};
     }
     cdDraft = c
       ? {id:c.id, name:c.name, note:c.note||'',
@@ -2877,7 +3132,7 @@
         '<div class="ed-grid">' + campo(i,'duration','min') + campo(i,'distance','km','0.1') +
           campo(i,'incline','% inc','0.5') + campo(i,'level','nível') + '</div>' +
         '<div class="ed-grid" style="grid-template-columns:1fr 1fr">' +
-          campo(i,'speed','km/h','0.1') + campo(i,'kcal','kcal') + '</div>' +
+          campo(i,'speed','km/h','0.1') + '</div>' +
       '</div>';
     }
 
@@ -2911,7 +3166,7 @@
       d.parts.splice(+b.getAttribute('data-del'), 1); renderCardioEditor();
     });
     document.getElementById('cdAdd').addEventListener('click', function(){
-      d.parts.push({days:[], tipo:'', target:{duration:'',distance:'',incline:'',level:'',speed:'',kcal:''}});
+      d.parts.push({days:[], tipo:'', target:{duration:'',distance:'',incline:'',level:'',speed:''}});
       cdPick = d.parts.length - 1; cdBusca = ''; renderCardioEditor();
     });
     bindAll(host, '.dow-b', function(b){
@@ -2944,7 +3199,7 @@
 
       var parts = d.parts.map(function(pt){
         var tgt = {};
-        ['duration','distance','incline','level','speed','kcal'].forEach(function(k){
+        ['duration','distance','incline','level','speed'].forEach(function(k){
           var v = parseFloat(pt.target[k]);
           if (!isNaN(v) && v > 0) tgt[k] = v;
         });
@@ -2957,6 +3212,7 @@
         c2.modality = parts[0].tipo; c2.days = diasDe(c2); c2.target = parts[0].target;
       } else {
         var novo = {id:newId(), name:d.name.trim(), archived:false, note:d.note.trim(),
+                    created_at:new Date().toISOString(), archived_at:null,
                     parts:parts, modality:parts[0].tipo, days:[], target:parts[0].target};
         novo.days = diasDe(novo);
         CARDIOS.push(novo);
@@ -2967,38 +3223,133 @@
     });
   }
 
+  var ceBusca = '';
   function openCardioEditSheet(logId){
     var l = CARDIO_LOGS.filter(function(x){ return x.id === logId; })[0];
     if (!l) return;
     var quando = new Date(l.date);
-    document.getElementById('sheetHost').innerHTML =
-      '<div class="scrim" id="scrimCE"></div>' +
-      '<div class="sheet" role="dialog" aria-label="Editar sessão">' +
-        '<div class="grabber"></div>' +
-        '<div class="spread"><h3>'+l.name+'</h3><button class="btn ghost sm" id="ceClose">Fechar</button></div>' +
-        cardioFormFields(l) +
+    var tipo = tipoExiste(l.name) || l.name || 'Outro';
+    var escolhendo = false, confirmando = false;
+    var form = {duration:l.duration, distance:l.distance, incline:l.incline, level:l.level, rpe:l.rpe};
+    ceBusca = '';
+
+    function guardaForm(){ if (document.getElementById('kDur')) form = readCardioForm(); }
+
+    function render(){
+      document.getElementById('sheetHost').innerHTML =
+        '<div class="scrim" id="scrimCE"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Editar sessão">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>'+(escolhendo ? 'Trocar o tipo' : 'Editar sessão')+'</h3>' +
+            '<button class="btn ghost sm" id="ceClose">Fechar</button></div>' +
+          (escolhendo ? painelTipo() : painelDados()) +
+        '</div>';
+      lockScroll(true);
+      document.getElementById('scrimCE').addEventListener('click', closeCardioSheet);
+      document.getElementById('ceClose').addEventListener('click', closeCardioSheet);
+      if (escolhendo) ligarTipo(); else ligarDados();
+    }
+
+    function painelTipo(){
+      return '<div class="search" style="margin-top:14px">' +
+          '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+          '<input id="ceBusca" type="search" value="'+ceBusca.replace(/"/g,'&quot;')+'" placeholder="corrida, bicicleta, nado..." aria-label="Buscar tipo"></div>' +
+        '<div id="ceTipos">' + tipoPickerHtml(ceBusca, tipo) + '</div>';
+    }
+    function ligarTipo(){
+      document.getElementById('ceBusca').addEventListener('input', function(ev){
+        ceBusca = ev.target.value;
+        document.getElementById('ceTipos').innerHTML = tipoPickerHtml(ceBusca, tipo);
+        chips();
+      });
+      chips();
+      function chips(){
+        bindAll(document.getElementById('ceTipos'), '[data-tipo]', function(b){
+          tipo = b.getAttribute('data-tipo'); escolhendo = false; render();
+        });
+      }
+    }
+
+    function painelDados(){
+      return '<button class="ed-row" id="kTipoBtn" style="width:100%;margin-top:14px;text-align:left">' +
+          '<span><span class="ed-n">'+tipo+'</span>' +
+            '<span class="ed-e">toque para trocar o tipo</span></span>' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>' +
         '<div style="margin-top:12px"><div class="field">' +
           '<input id="kDate" type="date" value="'+isoDay(quando)+'" max="'+isoDay(new Date())+'" aria-label="Dia">' +
           '<label for="kDate">dia</label></div></div>' +
+        cardioFormFields(form) +
         '<div style="margin-top:16px"><button class="btn" id="ceSave" style="background:var(--cardio)">Salvar</button></div>' +
-        '<div style="margin-top:12px"><button class="btn danger" id="ceDel">Excluir sessão</button></div>' +
-      '</div>';
-    lockScroll(true);
-    document.getElementById('scrimCE').addEventListener('click', closeCardioSheet);
-    document.getElementById('ceClose').addEventListener('click', closeCardioSheet);
-    document.getElementById('ceSave').addEventListener('click', function(){
-      var f = readCardioForm();
-      if (f.duration) l.duration = f.duration;
-      l.distance = f.distance; l.incline = f.incline; l.level = f.level; l.kcal = f.kcal;
-      l.date = lerData('kDate', quando);
-      CARDIO_LOGS.sort(function(a,b){ return a.date - b.date; });
-      reindexDays(); touchState();
-      closeCardioSheet(); renderAgenda(); renderCardio();
-    });
-    document.getElementById('ceDel').addEventListener('click', function(){
-      CARDIO_LOGS = CARDIO_LOGS.filter(function(x){ return x.id !== logId; });
-      reindexDays(); touchState(); closeCardioSheet(); renderAgenda();
-    });
+        '<div style="margin-top:12px"><button class="btn '+(confirmando?'danger':'ghost')+'" id="ceDel">' +
+          (confirmando ? 'Confirmar exclusão — não dá pra desfazer' : 'Excluir sessão') + '</button></div>' +
+        (confirmando ? '<div style="margin-top:8px"><button class="btn ghost sm" id="ceCancel">Cancelar</button></div>' : '');
+    }
+    function ligarDados(){
+      ligarRpe();
+      document.getElementById('kTipoBtn').addEventListener('click', function(){
+        guardaForm(); escolhendo = true; ceBusca = ''; render();
+      });
+      document.getElementById('ceSave').addEventListener('click', function(){
+        var f = readCardioForm();
+        if (!f.duration){
+          toast('Quanto tempo durou?', 'warn');
+          document.getElementById('kDur').focus(); return;
+        }
+        l.name = tipo; l.modality = tipo;
+        l.duration = f.duration; l.distance = f.distance;
+        l.incline = f.incline; l.level = f.level; l.rpe = f.rpe;
+        l.date = lerData('kDate', quando);
+        CARDIO_LOGS.sort(function(a,b){ return a.date - b.date; });
+        reindexDays(); touchState();
+        closeCardioSheet(); renderAgenda();
+      });
+      document.getElementById('ceDel').addEventListener('click', function(){
+        if (!confirmando){ guardaForm(); confirmando = true; render(); return; }
+        CARDIO_LOGS = CARDIO_LOGS.filter(function(x){ return x.id !== logId; });
+        reindexDays(); touchState(); closeCardioSheet(); renderAgenda();
+        toast('Sessão excluída', 'warn');
+      });
+      var cancel = document.getElementById('ceCancel');
+      if (cancel) cancel.addEventListener('click', function(){ guardaForm(); confirmando = false; render(); });
+    }
+
+    render();
+  }
+
+  function openMetaSheet(){
+    var val = SETTINGS.metaSemanal || 0;
+    function render(){
+      document.getElementById('sheetHost').innerHTML =
+        '<div class="scrim" id="scrimMT"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Meta semanal de cardio">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>Meta da semana</h3>' +
+            '<button class="btn ghost sm" id="mtClose">Fechar</button></div>' +
+          '<div class="note" style="margin-top:10px">Sem meta, o alvo da semana é a soma do que teus protocolos pedem.</div>' +
+          '<div class="chips" style="margin-top:14px">' +
+            '<button class="chip" data-meta="0"'+(!val?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>Seguir o plano</button>' +
+            [60,90,120,150,180].map(function(v){
+              return '<button class="chip" data-meta="'+v+'"'+(v===val?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+v+' min</button>';
+            }).join('') + '</div>' +
+          '<div style="margin-top:14px"><div class="field">' +
+            '<input id="mtVal" type="number" inputmode="numeric" value="'+(val||'')+'" placeholder="deixe vazio pra seguir o plano" aria-label="Meta em minutos">' +
+            '<label for="mtVal">min/semana</label></div></div>' +
+          '<div style="margin-top:16px"><button class="btn" id="mtSave" style="background:var(--cardio)">Salvar</button></div>' +
+        '</div>';
+      lockScroll(true);
+      document.getElementById('scrimMT').addEventListener('click', closeCardioSheet);
+      document.getElementById('mtClose').addEventListener('click', closeCardioSheet);
+      bindAll(document.getElementById('sheetHost'), '[data-meta]', function(b){
+        val = +b.getAttribute('data-meta'); render();
+      });
+      document.getElementById('mtSave').addEventListener('click', function(){
+        var v = parseInt(document.getElementById('mtVal').value, 10) || 0;
+        if (v && (v < 10 || v > 2000)){ toast('Põe algo entre 10 e 2000 min', 'warn'); return; }
+        SETTINGS.metaSemanal = v; touchState(); closeCardioSheet();
+        toast(v ? ('Meta: ' + v + ' min por semana') : 'Sem meta — segue o plano');
+      });
+    }
+    render();
   }
 
   function closeCardioSheet(){
@@ -3014,11 +3365,11 @@
     var m = exMetric(e), color = gColor(e.g);
     if (!m){
       return '<button class="c-row" data-carga="'+e.id+'">' +
-        '<span><span class="cn">'+e.name+'</span><span class="cg">'+e.eq+'</span></span>' +
+        '<span><span class="cn">'+esc(e.name)+'</span><span class="cg">'+esc(e.eq)+'</span></span>' +
         '<span></span><span><span class="cv" style="color:var(--dim);font-size:11px;white-space:nowrap">sem registro</span></span></button>';
     }
     return '<button class="c-row" data-carga="'+e.id+'">' +
-      '<span><span class="cn">'+e.name+'</span><span class="cg">'+e.eq+'</span></span>' +
+      '<span><span class="cn">'+esc(e.name)+'</span><span class="cg">'+esc(e.eq)+'</span></span>' +
       sparkline(m.series, color) +
       '<span><span class="cv">'+fmt(m.last)+'<span>'+m.unit+'</span></span>' +
         '<span class="cd" style="color:'+(m.delta>=0?'var(--good)':'var(--accent-ink)')+'">'+(m.delta>=0?'+':'')+fmt(m.delta)+'</span></span></button>';
@@ -3051,7 +3402,7 @@
       head.innerHTML =
         '<button class="back" id="cargaBack"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Cargas</button>' +
         '<div class="page-head" style="padding-bottom:12px">' + watermark(color) + '<div>' +
-          '<h1 class="page" style="font-size:27px;color:'+color+'">'+GROUPS[cargaGroup].label+'</h1>' +
+          '<h1 class="page" style="font-size:27px;color:'+color+'">'+grupoLabel(cargaGroup)+'</h1>' +
           '<div class="page-sub">'+list.length+' exercício'+(list.length>1?'s':'')+' neste grupo</div></div></div>';
       document.getElementById('cargaBack').addEventListener('click', function(){ cargaGroup = null; renderCargas(); });
       body.innerHTML = list.length
@@ -3138,11 +3489,11 @@
 
     document.getElementById('sheetHost').innerHTML =
       '<div class="scrim" id="scrim3"></div>' +
-      '<div class="sheet" role="dialog" aria-label="'+exLabel(e)+'">' +
+      '<div class="sheet" role="dialog" aria-label="'+esc(exLabel(e))+'">' +
         '<div class="grabber"></div>' +
-        '<div class="spread"><h3>'+e.name+'</h3><button class="btn ghost sm" id="cargaClose">Fechar</button></div>' +
+        '<div class="spread"><h3>'+esc(e.name)+'</h3><button class="btn ghost sm" id="cargaClose">Fechar</button></div>' +
         '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' +
-          '<span class="pill" style="background:transparent;border:1px solid '+gColor(e.g)+';color:'+gColor(e.g)+'">'+GROUPS[e.g].label+'</span>' +
+          '<span class="pill" style="background:transparent;border:1px solid '+gColor(e.g)+';color:'+gColor(e.g)+'">'+grupoLabel(e.g)+'</span>' +
           '<span class="chip" style="padding:3px 10px;font-size:12px">'+e.eq+'</span>' +
           '<span class="chip" style="padding:3px 10px;font-size:12px">'+FAM_LABEL[e.fam]+'</span>' +
           (pr ? '<span class="pill">PR '+(pr.bw ? 'PC' : fmt(pr.kg)+' kg')+' × '+pr.reps+'</span>' : '') +
@@ -3174,13 +3525,24 @@
       }
       EXERCISES = EXERCISES.filter(function(x){ return x.id !== exId; });
       WORKOUTS.forEach(function(w){ w.sets = w.sets.filter(function(s){ return s.exercise_id !== exId; }); });
-      reindexEx(); reindexDays(); closeSheet(); renderCargas();
+      /* tira da ficha também, senão fica um item fantasma apontando pro nada */
+      TREINOS.forEach(function(t){ t.items = t.items.filter(function(i){ return i.ex !== exId; }); });
+      if (activeSession){
+        activeSession.items = activeSession.items.filter(function(i){
+          if (i.ex === exId){ delete activeSession.log[i.uid]; return false; }
+          return true;
+        });
+      }
+      reindexEx(); reindexTreinos(); reindexDays(); touchState();
+      closeSheet(); renderCargas(); renderTreinoList();
     });
     document.getElementById('cAdd').addEventListener('click', function(){
       var kg = parseFloat(document.getElementById('cKg').value);
       var reps = parseInt(document.getElementById('cReps').value, 10);
       if (!reps){ document.getElementById('cReps').focus(); return; }
-      var key = dayKey(today), w = workoutsByDay[key];
+      viraDia();
+      var agora = hoje(), key = dayKey(agora);
+      var w = (workoutsByDay[key] || []).filter(function(x){ return x.treino_id === null; })[0];
       if (!w){
         w = {id:newId(), treino_id:null, treino_name:'Avulso', started_at:new Date(), duration_min:0, sets:[], swaps:[]};
         WORKOUTS.push(w); WORKOUTS.sort(function(a,b){ return a.started_at - b.started_at; }); reindexDays();
@@ -3312,8 +3674,8 @@
       if (!e) return '';
       return '<div class="ed-row" style="display:block">' +
         '<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">' +
-          '<span><span class="ed-n">'+e.name+'</span>' +
-            '<span class="ed-e" style="color:'+gColor(e.g)+'">'+GROUPS[e.g].label+' · '+e.eq+'</span></span>' +
+          '<span><span class="ed-n">'+esc(e.name)+'</span>' +
+            '<span class="ed-e" style="color:'+gColor(e.g)+'">'+grupoLabel(e.g)+' · '+e.eq+'</span></span>' +
           '<button class="ed-x" data-del="'+i+'" aria-label="Remover">' +
             '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
         '<div class="ed-grid">' +
@@ -3407,7 +3769,7 @@
   function renderPkBody(){
     var host = document.getElementById('pkBody');
     var list = EXERCISES.filter(function(e){
-      return !pickQuery || exLabel(e).toLowerCase().indexOf(pickQuery) >= 0 || GROUPS[e.g].label.toLowerCase().indexOf(pickQuery) >= 0;
+      return !pickQuery || exLabel(e).toLowerCase().indexOf(pickQuery) >= 0 || grupoLabel(e.g).toLowerCase().indexOf(pickQuery) >= 0;
     });
     var byGroup = {};
     list.forEach(function(e){ (byGroup[e.g] = byGroup[e.g] || []).push(e); });
@@ -3512,7 +3874,7 @@
           L.push('  ' + String(i+1).padStart(2,'0') + '  ' + e.name);
           L.push('      ' + (it.rmin && it.rmax ? it.sets + ' × ' + it.rmin + '–' + it.rmax
                  : it.sets + ' series') + (it.warm ? ' (+' + it.warm + ' aquec)' : '') +
-                 '   ·   ' + e.eq + '   ·   ' + GROUPS[e.g].label);
+                 '   ·   ' + e.eq + '   ·   ' + grupoLabel(e.g));
         });
         L.push('');
         L.push('      Total: ' + t.items.length + ' exercícios · ' + t.items.reduce(function(a,i){ return a+i.sets; },0) + ' séries');
@@ -3615,7 +3977,7 @@
             return '<div class="a4-row">' +
               '<span class="a4-i">'+String(i+1).padStart(2,'0')+'</span>' +
               '<span><span class="a4-n">'+e.name+'</span>' +
-                '<span class="a4-e">'+e.eq+' · '+GROUPS[e.g].label+'</span></span>' +
+                '<span class="a4-e">'+e.eq+' · '+grupoLabel(e.g)+'</span></span>' +
               '<span class="a4-s">'+(it.rmin && it.rmax ? it.sets+' × '+it.rmin+'–'+it.rmax : it.sets+'×')+
                 (it.warm ? ' <span style="color:#B0AAA4">+'+it.warm+'a</span>' : '')+'</span></div>';
           }).join('') +
@@ -3650,7 +4012,7 @@
   function importText(raw, kind){
     if (!raw || raw.trim().length < 10) return 'Cole um texto exportado primeiro.';
     if (kind === 'cardio') return 'Importação de cardio ainda não implementada no protótipo.';
-    var lines = raw.split('\n'), created = 0, current = null, pending = null;
+    var lines = raw.split('\n'), created = 0, current = null, pending = null, novos = [];
     lines.forEach(function(ln){
       var header = ln.match(/^([^\s].*?)\s+·\s+(Seg|Ter|Qua|Qui|Sex|Sáb|Dom)\s*$/);
       if (header && header[1] === header[1].toUpperCase()){
@@ -3658,7 +4020,7 @@
         current = {id:newId(),
                    name: nm.charAt(0) + nm.slice(1).toLowerCase(),
                    weekday: header[2], dow: WEEKDAYS.indexOf(header[2]), archived:false, items:[]};
-        TREINOS.push(current); reindexTreinos(); created++; pending = null;
+        TREINOS.push(current); novos.push(current.id); reindexTreinos(); created++; pending = null;
         return;
       }
       var exLine = ln.match(/^\s{2}\d{2}\s{2}(.+?)\s*$/);
@@ -3666,17 +4028,19 @@
       var spec = ln.match(/^\s{6}(\d+)\s*×\s*(\d+)[–-](\d+)\s*·\s*(.+?)\s*·\s*(.+?)\s*$/);
       if (spec && current && pending){
         var nome = pending, equip = spec[4].trim();
-        var found = EXERCISES.filter(function(e){ return e.name === nome && e.eq === equip; })[0];
+        var found = EXERCISES.filter(function(e){
+          return semAcento(e.name) === semAcento(nome) && semAcento(e.eq) === semAcento(equip);
+        })[0];
         if (!found){
           var grp = GROUP_ORDER.filter(function(g){ return GROUPS[g].label === spec[5].trim(); })[0] || 'peito';
-          found = {id:newId(), name:nome, g:grp, eq:equip, fam:'pressHoriz'};
+          found = {id:newId(), name:nome, g:grp, eq:equip, fam:famDe(nome, grp)};
           EXERCISES.push(found); reindexEx();
         }
         current.items.push({ex:found.id, sets:+spec[1], rmin:+spec[2], rmax:+spec[3], reps:[]});
         pending = null;
       }
     });
-    TREINOS = TREINOS.filter(function(t){ return t.items.length > 0; });
+    TREINOS = TREINOS.filter(function(t){ return t.items.length > 0 || novos.indexOf(t.id) < 0; });
     reindexTreinos();
     return created ? created + ' treino' + (created>1?'s':'') + ' importado' + (created>1?'s':'') + '.' : 'Não reconheci nenhum treino no texto.';
   }
@@ -3694,8 +4058,8 @@
     for (var i = 0; i < firstDow; i++) cells += '<div class="cal-day empty"></div>';
     for (var d = 1; d <= daysIn; d++){
       var date = new Date(y, m, d), k = dayKey(date);
-      var w = workoutsByDay[k], cs = cardioByDay[k], man = !w && MANUAL[k];
-      if (w || man) nW++;
+      var ws = workoutsByDay[k] || [], cs = cardioByDay[k], w = ws.length, man = !w && MANUAL[k];
+      if (w || man) nW += (w || 1);
       if (cs) nC++;
       var isToday = k === dayKey(today), sel = k === selectedDay;
       var treinou = !!(w || man), fezCardio = !!(cs && cs.length);
@@ -3712,12 +4076,12 @@
       selectedDay = b.getAttribute('data-day'); renderAgenda();
     });
 
-    var w2 = workoutsByDay[selectedDay], cs2 = cardioByDay[selectedDay] || [];
+    var ws2 = workoutsByDay[selectedDay] || [], cs2 = cardioByDay[selectedDay] || [];
     var host = document.getElementById('agendaDetail');
     var man = MANUAL[selectedDay];
     var selDate = new Date(selectedDay.split('-')[0], +selectedDay.split('-')[1]-1, selectedDay.split('-')[2]);
 
-    var manBlock = w2 ? '' :
+    var manBlock = ws2.length ? '' :
       '<div class="card" style="margin-bottom:16px;padding:14px">' +
         (man
           ? '<div class="spread"><div><div class="pr-name" style="color:var(--good)">✓ Treinei neste dia</div>' +
@@ -3731,7 +4095,7 @@
 
     var cardioAdd = '<div style="margin-top:14px"><button class="btn ghost" id="agCardio">+ Registrar cardio neste dia</button></div>';
 
-    if (!w2 && !cs2.length){
+    if (!ws2.length && !cs2.length){
       host.innerHTML =
         '<div class="page-head" style="padding-block:4px 12px"><div>' +
           '<h2 class="section" style="font-size:19px">'+longDate(selDate)+'</h2>' +
@@ -3742,53 +4106,55 @@
     }
 
     var html = manBlock;
-    if (w2){
+    ws2.forEach(function(w2, wi){
       var vol = 0;
       w2.sets.forEach(function(s){ vol += setKg(s, w2.started_at) * s.reps; });
       var byEx = {};
       w2.sets.forEach(function(s){ (byEx[s.exercise_id] = byEx[s.exercise_id] || []).push(s); });
       html +=
-        '<div class="page-head" style="padding-block:4px 12px"><div>' +
-          '<h2 class="section" style="font-size:19px">'+w2.treino_name+'</h2>' +
-          '<div class="page-sub">'+shortDate(w2.started_at)+' · '+w2.sets.length+(w2.sets.length===1?' série':' séries')+' · '+fmt(vol,0)+' kg'+(w2.duration_min?' · '+w2.duration_min+' min':'')+'</div></div></div>' +
+        '<div class="page-head" style="padding-block:'+(wi?'18px':'4px')+' 12px"><div>' +
+          '<h2 class="section" style="font-size:19px">'+esc(w2.treino_name)+'</h2>' +
+          '<div class="page-sub">'+hhmm(w2.started_at)+' · '+w2.sets.length+(w2.sets.length===1?' série':' séries')+' · '+fmt(vol,0)+' kg'+(w2.duration_min?' · '+w2.duration_min+' min':'')+'</div></div></div>' +
         (w2.swaps && w2.swaps.length
           ? '<div class="card" style="margin-bottom:12px;padding:12px 14px"><div class="eyebrow" style="margin-bottom:7px">Trocas neste dia</div>' +
             w2.swaps.map(function(s){
-              return '<div class="note" style="font-size:12.5px;color:var(--muted)">'+(exById[s.to]?exLabel(exById[s.to]):'?')+' <span style="color:var(--dim)">no lugar de '+(exById[s.from]?exLabel(exById[s.from]):'?')+'</span></div>';
+              return '<div class="note" style="font-size:12.5px;color:var(--muted)">'+(exById[s.to]?esc(exLabel(exById[s.to])):'?')+' <span style="color:var(--dim)">no lugar de '+(exById[s.from]?esc(exLabel(exById[s.from])):'?')+'</span></div>';
             }).join('') + '</div>' : '') +
         '<div class="card"><div class="pr-list">' + Object.keys(byEx).map(function(id){
           var ss = byEx[id], ex = exById[id];
           if (!ex) return '';
-          return '<div class="pr-row"><div><div class="pr-name">'+exLabel(ex)+'</div>' +
-            '<div class="pr-date" style="color:'+gColor(ex.g)+'">'+GROUPS[ex.g].label+'</div></div>' +
+          return '<div class="pr-row"><div><div class="pr-name">'+esc(exLabel(ex))+'</div>' +
+            '<div class="pr-date" style="color:'+gColor(ex.g)+'">'+grupoLabel(ex.g)+'</div></div>' +
             '<div class="pr-val">'+(ss[0].bw ? 'PC' : fmt(Math.max.apply(null, ss.map(function(s){ return s.weight_kg; }))))+
               '<small>'+ss.map(function(s){ return s.reps; }).join(', ')+' reps</small></div></div>';
         }).join('') + '</div></div>' +
-        '<div style="margin-top:12px"><button class="btn danger" id="delWorkout">Excluir este registro</button>' +
+        '<div style="margin-top:12px"><button class="btn danger" data-delw="'+w2.id+'">Excluir este registro</button>' +
         '<p class="note" style="margin-top:8px;text-align:center">Para sessões abertas sem querer. As cargas deste dia saem dos gráficos.</p></div>';
-    }
+    });
     if (cs2.length){
-      html += '<div class="stack" style="margin-top:'+(w2?'18px':'4px')+'">' +
+      html += '<div class="stack" style="margin-top:'+(ws2.length?'18px':'4px')+'">' +
         '<h2 class="section" style="color:var(--cardio)">Cardio</h2><div class="card"><div class="pr-list">' +
         cs2.map(function(l){
           var det = cardioDetails(l);
           return '<div class="pr-row"><div><div class="pr-name">'+l.name+'</div>' +
             '<div class="pr-date">'+l.modality+(det.length?' · '+det.join(' · '):'')+'</div></div>' +
-            '<div class="pr-val">'+l.duration+'<small>min</small></div></div>';
+            '<div class="pr-val">'+(l.duration || '–')+'<small>min</small></div></div>';
         }).join('') + '</div></div></div>';
     }
     html += cardioAdd;
     host.innerHTML = html;
     bindManual(); bindAgCardio();
 
-    var dw = document.getElementById('delWorkout'), dwArmed = false;
-    if (dw) dw.addEventListener('click', function(){
-      if (!dwArmed){
-        dwArmed = true; dw.textContent = 'Confirmar exclusão deste dia';
-        setTimeout(function(){ if (dwArmed){ dwArmed = false; dw.textContent = 'Excluir este registro'; } }, 5000);
+    bindAll(host, '[data-delw]', function(dw){
+      var wid = dw.getAttribute('data-delw');
+      if (dw.getAttribute('data-armed') !== '1'){
+        dw.setAttribute('data-armed','1'); dw.textContent = 'Confirmar exclusão deste treino';
+        setTimeout(function(){
+          if (dw.getAttribute('data-armed') === '1'){ dw.removeAttribute('data-armed'); dw.textContent = 'Excluir este registro'; }
+        }, 5000);
         return;
       }
-      WORKOUTS = WORKOUTS.filter(function(x){ return x.id !== w2.id; });
+      WORKOUTS = WORKOUTS.filter(function(x){ return x.id !== wid; });
       reindexDays(); touchState();
       renderAgenda(); renderTreinoList(); renderCargas();
       toast('Registro excluído');
