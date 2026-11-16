@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0B0B0D">
-<meta name="description" content="Ficha de treino, cargas, cardio, peso e fotos.">
+<meta name="description" content="Ficha de treino, cargas, cardio e peso.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="UGYM">
@@ -386,6 +386,37 @@
 
   /* editor de ficha */
   .ed-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;margin-bottom:7px}
+  .ed-row .grip, .st-row .grip{color:var(--dim);touch-action:none;cursor:grab;display:flex;align-items:center;justify-content:center;padding:4px 0}
+  .st-row.dragging{position:relative;z-index:5;border-color:var(--accent);box-shadow:var(--shadow);opacity:.97}
+  body.dragging-on .st-row:not(.dragging){transition:transform .16s cubic-bezier(.22,.68,.36,1)}
+  /* navegação interna do cardio */
+  .arq-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:99px;
+           background:var(--surface-2);border:1px solid var(--line);color:var(--dim);font-size:12px}
+  .arq-btn span{font-family:"IBM Plex Mono",monospace;font-weight:600}
+  .arq-btn:hover{color:var(--muted)}
+  .seg{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:18px}
+  .seg-b{flex:1;padding:8px 4px;border-radius:9px;font-size:12.5px;font-weight:500;color:var(--muted);min-width:0;text-align:center}
+  .seg-b.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+  /* execução */
+  .run{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;
+       padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(14px + env(safe-area-inset-bottom,0px))}
+  .run-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none}
+  .run-mid{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:6px}
+  .run-kind{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--cardio);font-weight:600}
+  .run-alvo{font-family:"IBM Plex Mono",monospace;font-size:46px;font-weight:600;letter-spacing:-.03em;line-height:1.05}
+  .run-sub{font-size:13.5px;color:var(--muted)}
+  .run-prox{font-size:12.5px;color:var(--dim);margin-top:12px}
+  .run-bar{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin:16px 0 10px;flex:none}
+  .run-bar > i{display:block;height:100%;background:var(--cardio);border-radius:99px;transition:width .3s ease}
+  .run-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:none;margin-bottom:12px}
+  .run-st{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:9px 10px;text-align:center}
+  .run-st b{display:block;font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600}
+  .run-st span{font-size:10.5px;color:var(--muted)}
+  .run-acts{display:flex;gap:8px;flex:none}
+  .run-acts .btn{flex:1}
+  @media (min-width:840px){ .run{max-width:560px;margin:0 auto;border-left:1px solid var(--line);border-right:1px solid var(--line)} }
+  .ed-row.dragging{position:relative;z-index:5;border-color:var(--accent);box-shadow:var(--shadow);opacity:.97}
+  body.dragging-on .ed-row:not(.dragging){transition:transform .16s cubic-bezier(.22,.68,.36,1)}
   .ed-n{font-size:14px;font-weight:500;line-height:1.25}
   .ed-e{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
   .ed-x{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);flex:none}
@@ -406,11 +437,13 @@
   .rpe-b.lo.on{background:var(--muted);border-color:var(--muted)}
   .rpe-b.hi.on{background:var(--accent);border-color:var(--accent)}
   /* aderência ao planejado — só na faixa da aba Cardio */
-  .wk-day.ad-ok{background:color-mix(in srgb, var(--good) 34%, var(--surface-2))}
-  .wk-day.ad-quase{background:color-mix(in srgb, #C9A227 30%, var(--surface-2))}
-  .wk-day.ad-fora{background:color-mix(in srgb, #C9772A 30%, var(--surface-2))}
-  .wk-day.ad-extra{background:var(--surface-2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 55%, transparent)}
-  .wk-day.ad-nao{background:var(--surface-2);opacity:.5}
+  .wk-day.ad-ok{background:color-mix(in srgb, var(--good) 62%, var(--surface-2));color:var(--text);
+                box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--good) 85%, transparent)}
+  .wk-day.ad-quase,.wk-day.ad-fora,.wk-day.ad-extra{
+                background:color-mix(in srgb, var(--good) 26%, var(--surface-2));color:var(--text)}
+  .wk-day.ad-nao{background:var(--surface-2);opacity:.55}
+  .wk-day.ad-ok .wk-dot,.wk-day.ad-quase .wk-dot,.wk-day.ad-fora .wk-dot,.wk-day.ad-extra .wk-dot{
+                color:var(--text);font-size:13px;line-height:1}
   .meta-bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:9px}
   .meta-bar > i{display:block;height:100%;border-radius:99px;background:var(--cardio);transition:width .35s ease}
   .lg-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:9px;font-size:11px;color:var(--muted)}
@@ -575,10 +608,6 @@
       <div id="agendaDetail"></div>
     </section>
 
-    <section id="tab-fotos" hidden>
-      <div id="fotosBody"></div>
-    </section>
-
     <section id="tab-peso" hidden>
       <div id="pesoHead"></div>
       <div class="stack-lg">
@@ -624,10 +653,6 @@
     <button class="tab" role="tab" data-tab="cargas" aria-selected="false">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V6M4 18h16M7.5 15l3.5-4 3 2.5L20 8"/></svg>
       Cargas<span class="dot"></span>
-    </button>
-    <button class="tab" role="tab" data-tab="fotos" aria-selected="false">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10.5" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3 3-2.5 5 4.5"/></svg>
-      Fotos<span class="dot"></span>
     </button>
     <button class="tab" role="tab" data-tab="peso" aria-selected="false">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20h14l-2.2-10.5H7.2L5 20Z"/><path d="M9.5 6.5a2.5 2.5 0 1 1 5 0"/><path d="M12 12.5v3"/></svg>
@@ -923,6 +948,11 @@
   var WORKOUTS = [];
 
   var CARDIO_LOGS = [];
+  var CWORKOUTS = [];   // treinos de cardio estruturados (planejados)
+  var CGOALS = [];      // metas
+  var cwById = {};
+  function reindexCw(){ cwById = {}; CWORKOUTS.forEach(function(w){ cwById[w.id] = w; }); }
+  function cwAtivos(){ return CWORKOUTS.filter(function(w){ return !w.archived; }); }
 
   var MANUAL = {};   // dias marcados na mão: dayKey -> {treino_id}
   /* ajustes do usuário que viajam na nuvem */
@@ -1080,7 +1110,7 @@
       BODY        = (d.BODY || []).map(function(b){ b.date = new Date(b.date); return b; });
       PHOTOS      = (d.PHOTOS || []).map(function(x){ x.date = new Date(x.date); return x; });
       MANUAL      = d.MANUAL || {};
-      reindexEx(); reindexTreinos(); reindexCardios(); reindexDays();
+      reindexEx(); reindexTreinos(); reindexCardios(); reindexCw(); reindexDays();
       return true;
     } catch(e){ return false; }
   }
@@ -1095,7 +1125,10 @@
   var SB_KEY = 'sb_publishable_WxEprMuj04oKe_nOt7bmbg_KDEOAgFH';
   var TABLES = ['exercises','routines','routine_exercises','workouts','workout_sets',
                 'workout_swaps','cardio_protocols','cardio_logs','body_weights',
-                'manual_days','progress_photos','app_settings'];
+                'manual_days','progress_photos','app_settings',
+                'cardio_workouts','cardio_steps','cardio_log_steps','cardio_goals'];
+  /* tabela que o banco ainda não tem não pode derrubar a sincronização inteira */
+  var SEM_TABELA = {};
 
   var sb = null, USER = null, CLOUD = false, SNAP = null;
   var pushTimer = null, pushing = false, pushAgain = false, syncState = 'local';
@@ -1145,9 +1178,11 @@
     EXERCISES.forEach(function(e){ mark(e.id); });
     TREINOS.forEach(function(t){ mark(t.id); });
     if (SETTINGS.id) mark(SETTINGS.id);
+    CWORKOUTS.forEach(function(w){ mark(w.id); (w.steps||[]).forEach(function(x){ mark(x.id); }); });
+    CGOALS.forEach(function(g){ mark(g.id); });
     CARDIOS.forEach(function(c){ mark(c.id); });
     WORKOUTS.forEach(function(w){ mark(w.id); (w.sets||[]).forEach(function(s){ mark(s.id); }); });
-    CARDIO_LOGS.forEach(function(l){ mark(l.id); });
+    CARDIO_LOGS.forEach(function(l){ mark(l.id); (l.steps||[]).forEach(function(x){ mark(x.id); }); });
     BODY.forEach(function(b){ mark(b.id); });
     PHOTOS.forEach(function(x){ mark(x.id); });
     if (!need) return false;
@@ -1158,17 +1193,22 @@
       (t.items||[]).forEach(function(it){ it.ex = m(it.ex); if (!isUuid(it.rid)) it.rid = newId(); });
     });
     if (SETTINGS.id) SETTINGS.id = m(SETTINGS.id);
+    CWORKOUTS.forEach(function(w){ w.id = m(w.id); (w.steps||[]).forEach(function(x){ x.id = m(x.id); }); });
+    CGOALS.forEach(function(g){ g.id = m(g.id); });
     CARDIOS.forEach(function(c){ c.id = m(c.id); });
     WORKOUTS.forEach(function(w){
       w.id = m(w.id); w.treino_id = m(w.treino_id);
       (w.sets||[]).forEach(function(s){ s.id = m(s.id); s.exercise_id = m(s.exercise_id); });
       (w.swaps||[]).forEach(function(s){ if (!isUuid(s.id)) s.id = newId(); s.from = m(s.from); s.to = m(s.to); });
     });
-    CARDIO_LOGS.forEach(function(l){ l.id = m(l.id); l.cardio_id = m(l.cardio_id); });
+    CARDIO_LOGS.forEach(function(l){
+      l.id = m(l.id); l.cardio_id = m(l.cardio_id); l.workout_id = m(l.workout_id);
+      (l.steps||[]).forEach(function(x){ x.id = m(x.id); x.step_id = m(x.step_id); });
+    });
     BODY.forEach(function(b){ b.id = m(b.id); });
     PHOTOS.forEach(function(x){ x.id = m(x.id); });
     Object.keys(MANUAL).forEach(function(k){ if (MANUAL[k]) MANUAL[k].treino_id = m(MANUAL[k].treino_id); });
-    reindexEx(); reindexTreinos(); reindexCardios(); reindexDays();
+    reindexEx(); reindexTreinos(); reindexCardios(); reindexCw(); reindexDays();
     saveState();
     return true;
   }
@@ -1233,7 +1273,7 @@
       R.cardio_protocols.push({id:c.id, user_id:u, name:c.name,
         modality: p0.tipo || c.modality || c.name, weekdays: diasDe(c),
         parts: ps.map(function(x){
-          return {days:(x.days||[]).slice(), tipo:x.tipo || '', target:x.target || {}};
+          return {days:(x.days||[]).slice(), tipo:x.tipo || '', target:x.target || {}, workout_id:x.workout_id || null};
         }),
         target_duration_min: num(tg.duration), target_distance_km: num(tg.distance),
         target_incline_pct: num(tg.incline), target_level: num(tg.level),
@@ -1253,7 +1293,12 @@
         name: l.name || 'Cardio', modality: l.modality || null,
         performed_on: isoDay(l.date), duration_min: Math.round(l.duration || 0),
         distance_km: num(l.distance), incline_pct: num(l.incline), level: num(l.level),
-        kcal: num(l.kcal), rpe: num(l.rpe)});
+        kcal: num(l.kcal), rpe: num(l.rpe),
+        workout_id: (l.workout_id && cwById[l.workout_id]) ? l.workout_id : null,
+        pace_s_km: num(l.pace), best_pace_s_km: num(l.bestPace),
+        hr_avg: num(l.hrAvg), hr_max: num(l.hrMax),
+        speed_avg: num(l.spdAvg), speed_max: num(l.spdMax),
+        elevation_m: num(l.elev), cadence: num(l.cadence), note: l.note || null});
     });
 
     BODY.forEach(function(b){
@@ -1273,6 +1318,38 @@
     PHOTOS.forEach(function(ph){
       if (!isUuid(ph.id) || !ph.path) return;
       R.progress_photos.push({id:ph.id, user_id:u, taken_on: isoDay(ph.date), storage_path: ph.path});
+    });
+
+    CWORKOUTS.forEach(function(w){
+      if (!isUuid(w.id)) return;
+      R.cardio_workouts.push({id:w.id, user_id:u, name:w.name, modality:w.modality || 'corrida',
+        kind:w.kind || null, note:w.note || null, archived:!!w.archived,
+        created_at:w.created_at || null, archived_at:w.archived_at || null});
+      (w.steps || []).forEach(function(st, i){
+        if (!isUuid(st.id)) st.id = newId();
+        R.cardio_steps.push({id:st.id, workout_id:w.id, pos:i, kind:st.kind || 'corrida',
+          reps: st.reps || 1, distance_m: num(st.dist), duration_s: num(st.dur),
+          pace_s_km: num(st.pace), intensity: num(st.intens), rest_s: num(st.rest),
+          note: st.note || null});
+      });
+    });
+
+    CARDIO_LOGS.forEach(function(l){
+      if (!isUuid(l.id)) return;
+      (l.steps || []).forEach(function(st, i){
+        if (!isUuid(st.id)) st.id = newId();
+        R.cardio_log_steps.push({id:st.id, log_id:l.id, step_id: isUuid(st.step_id) ? st.step_id : null,
+          pos:i, rep: st.rep || 1, kind: st.kind || null,
+          distance_m: num(st.dist), duration_s: num(st.dur), pace_s_km: num(st.pace),
+          note: st.note || null});
+      });
+    });
+
+    CGOALS.forEach(function(g){
+      if (!isUuid(g.id)) return;
+      R.cardio_goals.push({id:g.id, user_id:u, name:g.name, modality:g.modality || 'corrida',
+        metric:g.metric, target_distance_m: num(g.dist), target_time_s: num(g.time),
+        target_value: num(g.value), done: !!g.done, created_at: g.created_at || null});
     });
 
     return R;
@@ -1323,8 +1400,8 @@
       if (r.target_speed_kmh != null)    tg.speed    = Number(r.target_speed_kmh);
       if (r.target_kcal != null)         tg.kcal     = Number(r.target_kcal);
       var ps = (r.parts && r.parts.length)
-        ? r.parts.map(function(x){ return {days:(x.days||[]).slice(), tipo:tipoOficial(x.tipo) || (x.tipo||''), target:x.target||{}}; })
-        : [{days:(r.weekdays || []).slice(), tipo:tipoOficial(r.modality) || (r.modality||''), target:tg}];
+        ? r.parts.map(function(x){ return {days:(x.days||[]).slice(), tipo:tipoOficial(x.tipo) || (x.tipo||''), target:x.target||{}, workout_id:x.workout_id||null}; })
+        : [{days:(r.weekdays || []).slice(), tipo:tipoOficial(r.modality) || (r.modality||''), target:tg, workout_id:null}];
       return {id:r.id, name:r.name, modality:tipoOficial(r.modality) || r.modality, archived:!!r.archived,
               created_at:r.created_at || null, archived_at:r.archived_at || null,
               days:(r.weekdays || []).slice(), target:tg, note:r.note || '', parts:ps};
@@ -1381,7 +1458,14 @@
     var out = {};
     for (var i = 0; i < TABLES.length; i++){
       var r = await sb.from(TABLES[i]).select('*');
-      if (r.error) throw r.error;
+      if (r.error){
+        /* 42P01 = tabela não existe: segue sem ela em vez de derrubar tudo */
+        if (r.error.code === '42P01' || /does not exist|schema cache/i.test(r.error.message || '')){
+          SEM_TABELA[TABLES[i]] = 1; out[TABLES[i]] = []; continue;
+        }
+        throw r.error;
+      }
+      delete SEM_TABELA[TABLES[i]];
       out[TABLES[i]] = r.data || [];
     }
     if (!out.exercises.length && !out.workouts.length) return false;
@@ -1402,9 +1486,22 @@
     try {
       var R = buildRows();
       var i, j, tb, res;
+      /* protocolo de cardio que vai sumir: primeiro solto as sessões dele.
+         assim nenhuma sessão é levada junto, seja qual for a regra do banco. */
+      var protVivos = {}; R.cardio_protocols.forEach(function(r){ protVivos[r.id] = 1; });
+      var protSumindo = Object.keys((SNAP && SNAP.cardio_protocols) || {})
+                              .filter(function(id){ return !protVivos[id]; });
+      if (protSumindo.length){
+        var soltas = R.cardio_logs.filter(function(r){ return !r.protocol_id; });
+        for (j = 0; j < soltas.length; j += 150){
+          res = await sb.from('cardio_logs').upsert(soltas.slice(j, j + 150), {onConflict:'id'});
+          if (res.error) throw res.error;
+        }
+      }
       /* apaga primeiro: libera posição, dia e nome repetidos */
       for (i = TABLES.length - 1; i >= 0; i--){
         tb = TABLES[i];
+        if (SEM_TABELA[tb]) continue;
         var alive = {}; R[tb].forEach(function(r){ alive[r.id] = 1; });
         var gone = Object.keys((SNAP && SNAP[tb]) || {}).filter(function(id){ return !alive[id]; });
         for (j = 0; j < gone.length; j += 150){
@@ -1414,6 +1511,7 @@
       }
       for (i = 0; i < TABLES.length; i++){
         tb = TABLES[i];
+        if (SEM_TABELA[tb]) continue;
         var prev = (SNAP && SNAP[tb]) || {};
         var mod = R[tb].filter(function(r){ return prev[r.id] !== JSON.stringify(r); });
         for (j = 0; j < mod.length; j += 150){
@@ -1703,10 +1801,12 @@
     });
   }
   /* arrastar pelo punho: reordena os exercícios da sessão */
-  function enableDrag(list){
+  function enableDrag(list, opt){
+    opt = opt || {};
+    var SEL = opt.sel || '.ex';
     var GAP = 8, drag = null;
 
-    function rowsOf(){ return Array.prototype.slice.call(list.querySelectorAll('.ex')); }
+    function rowsOf(){ return Array.prototype.slice.call(list.querySelectorAll(SEL)); }
 
     function layout(){
       if (!drag) return;
@@ -1752,18 +1852,17 @@
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
       drag = null;
-      if (from !== to && activeSession){
-        var a = activeSession.items, it = a.splice(from, 1)[0];
-        a.splice(to, 0, it);
-        touchState();
+      if (from !== to){
+        var a = opt.arr ? opt.arr() : (activeSession && activeSession.items);
+        if (a){ a.splice(to, 0, a.splice(from, 1)[0]); touchState(); }
       }
-      renderTreinoDetail();
+      (opt.after || renderTreinoDetail)();
     }
 
     Array.prototype.forEach.call(list.querySelectorAll('[data-grip]'), function(grip){
       grip.addEventListener('pointerdown', function(ev){
         if (ev.button !== undefined && ev.button !== 0) return;
-        var rows = rowsOf(), el = grip.closest('.ex'), from = rows.indexOf(el);
+        var rows = rowsOf(), el = grip.closest(SEL), from = rows.indexOf(el);
         if (from < 0) return;
         ev.preventDefault();
         var rects = rows.map(function(r){ return r.getBoundingClientRect(); });
@@ -1867,6 +1966,88 @@
       WEEKDAYS[today.getDay()].toLowerCase() + ' · ' + shortDate(today);
   }
 
+
+  /* ---------- o que foi arquivado some da tela e vira um símbolo ---------- */
+  function botaoArquivo(n, qual){
+    return '<div style="margin-top:22px;text-align:center">' +
+      '<button class="arq-btn" data-arqabrir="'+qual+'" aria-label="Ver arquivados">' +
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' +
+          '<rect x="3" y="4" width="18" height="4.5" rx="1.3"/><path d="M5 8.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V8.5"/><path d="M10 12h4"/></svg>' +
+        '<span>'+n+'</span></button></div>';
+  }
+  function openArquivo(qual){
+    function lista(){
+      if (qual === 'treinos')  return TREINOS.filter(function(t){ return t.archived; });
+      if (qual === 'cwork')    return CWORKOUTS.filter(function(w){ return w.archived; });
+      return CARDIOS.filter(function(c){ return c.archived; });
+    }
+    var titulo = qual === 'treinos' ? 'Treinos arquivados'
+               : qual === 'cwork'   ? 'Treinos de cardio arquivados'
+               : 'Protocolos arquivados';
+    function render(){
+      var L = lista();
+      document.getElementById('sheetHost').innerHTML =
+        '<div class="scrim" id="scrimAQ"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Arquivados">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>'+titulo+'</h3>' +
+            '<button class="btn ghost sm" id="aqClose">Fechar</button></div>' +
+          '<div class="note" style="margin-top:8px">Saíram da ficha mas continuam aqui. O histórico nunca é apagado.</div>' +
+          (L.length
+            ? '<div style="margin-top:14px">' + L.map(function(x){
+                var sub = qual === 'treinos' ? (x.items.length + ' exercícios')
+                        : qual === 'cwork'   ? cwResumo(x)
+                        : (CARDIO_LOGS.filter(function(l){ return l.cardio_id === x.id; }).length + ' sessões');
+                return '<div class="ed-row">' +
+                  '<span><span class="ed-n">'+esc(x.name)+'</span>' +
+                    '<span class="ed-e">'+sub+'</span></span>' +
+                  '<span style="display:flex;gap:6px">' +
+                    '<button class="btn ghost sm" data-aqrest="'+x.id+'">Restaurar</button>' +
+                    '<button class="ed-x" data-aqdel="'+x.id+'" aria-label="Excluir">' +
+                      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+                  '</span></div>';
+              }).join('') + '</div>'
+            : '<div class="empty" style="margin-top:14px">Nada arquivado.</div>') +
+        '</div>';
+      lockScroll(true);
+      function fecha(){
+        document.getElementById('sheetHost').innerHTML = ''; lockScroll(false);
+        renderTreinoList(); renderCardio();
+      }
+      document.getElementById('scrimAQ').addEventListener('click', fecha);
+      document.getElementById('aqClose').addEventListener('click', fecha);
+      bindAll(document.getElementById('sheetHost'), '[data-aqrest]', function(b){
+        var id = b.getAttribute('data-aqrest');
+        if (qual === 'treinos'){ treinoById[id].archived = false; }
+        else if (qual === 'cwork'){ var w = cwById[id]; w.archived = false; w.archived_at = null; }
+        else { var c = cardioById[id]; c.archived = false; c.archived_at = null; }
+        touchState(); render();
+        toast('Restaurado');
+      });
+      bindAll(document.getElementById('sheetHost'), '[data-aqdel]', function(b){
+        var id = b.getAttribute('data-aqdel');
+        if (b.getAttribute('data-armado') !== '1'){
+          b.setAttribute('data-armado','1'); toast('Toque de novo pra excluir de vez', 'warn');
+          setTimeout(function(){ b.removeAttribute('data-armado'); }, 4000); return;
+        }
+        if (qual === 'treinos'){
+          /* o treino sai da ficha, as cargas registradas nunca somem */
+          TREINOS = TREINOS.filter(function(t){ return t.id !== id; });
+          WORKOUTS.forEach(function(w){ if (w.treino_id === id) w.treino_id = null; });
+          reindexTreinos(); reindexDays();
+        } else if (qual === 'cwork'){
+          CARDIO_LOGS.forEach(function(l){ if (l.workout_id === id) l.workout_id = null; });
+          CWORKOUTS = CWORKOUTS.filter(function(w){ return w.id !== id; });
+          reindexCw();
+        } else {
+          excluirProtocolo(id);
+        }
+        touchState(); render();
+      });
+    }
+    render();
+  }
+
   function renderTreinoList(){
     touchState();
     var c = sessionCounts();
@@ -1953,19 +2134,10 @@
             '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>';
         }).join('') +
       '</div>' +
-      (arch.length
-        ? '<div class="stack"><h2 class="section">Arquivados</h2>' +
-          '<p class="note" style="margin-top:-4px">Saíram da ficha mas continuam aqui. As cargas nunca são apagadas.</p>' +
-          arch.map(function(t){
-            return '<button class="t-card arch" data-restore="'+t.id+'"><span>' +
-              '<span class="t-name">'+esc(t.name)+'</span>' +
-              '<span class="t-count" style="color:var(--muted)">'+t.items.length+' exercícios</span>' +
-              '<span class="t-day">Toque para restaurar</span></span>' +
-              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 1 2.5 5.8"/><path d="M4 18v-5h5"/></svg></button>';
-          }).join('') + '</div>'
-        : '');
+      (arch.length ? botaoArquivo(arch.length, 'treinos') : '');
 
     bindAll(body, '[data-open]', function(b){ openTreino(b.getAttribute('data-open')); });
+    bindAll(body, '[data-arqabrir]', function(b){ openArquivo(b.getAttribute('data-arqabrir')); });
     bindAll(body, '[data-restore]', function(b){
       treinoById[b.getAttribute('data-restore')].archived = false;
       renderTreinoList(); renderCargas();
@@ -2077,7 +2249,7 @@
         '<span><span class="ex-name">'+esc(exLabel(e))+'</span>' +
           '<span class="ex-sub" style="color:'+gColor(e.g)+'">'+grupoLabel(e.g)+
             '<span style="color:var(--line)"> | </span><span style="color:var(--muted)">'+
-              (it.rmin && it.rmax ? it.sets+' × '+it.rmin+'–'+it.rmax : it.sets+(it.sets===1?' série':' séries'))+
+              (it.sets+(it.sets===1?' série':' séries'))+
               (it.warm ? ' + '+it.warm+' aquec.' : '')+'</span></span>' +
           (it.from && exById[it.from] ? '<span class="ex-swap">no lugar de '+exLabel(exById[it.from])+'</span>' : '') +
         '</span><span class="ex-load">'+loadText+'<small>'+loadLabel+'</small></span>' +
@@ -2574,7 +2746,8 @@
   function resumoPartes(c){
     return partsDe(c).map(function(pt){
       var a = alvoTexto(pt.target || {});
-      return daysLabel(pt.days) + ' · ' + (pt.tipo || '?') + (a ? ' · ' + a : '');
+      var w = pt.workout_id ? cwById[pt.workout_id] : null;
+      return daysLabel(pt.days) + ' · ' + (w ? esc(w.name) : (pt.tipo || '?')) + (a ? ' · ' + a : '');
     }).join('<span style="color:var(--line)"> | </span>');
   }
 
@@ -2651,12 +2824,7 @@
       '</div><div class="wk">'+weekStripHtml(off, mode)+'</div>' +
       (mode === 'treino'
         ? '<div class="note" style="margin-top:9px;text-align:center">Toque num dia vazio para marcar que treinou</div>'
-        : '<div class="lg-row" style="justify-content:center">' +
-            '<span><i style="background:color-mix(in srgb, var(--good) 34%, var(--surface-2))"></i>no alvo</span>' +
-            '<span><i style="background:color-mix(in srgb, #C9A227 30%, var(--surface-2))"></i>perto</span>' +
-            '<span><i style="background:color-mix(in srgb, #C9772A 30%, var(--surface-2))"></i>longe</span>' +
-            '<span><i style="background:var(--surface-2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--cardio) 55%, transparent)"></i>sem plano</span>' +
-          '</div>') + '</div>';
+        : '') + '</div>';
   }
 
   function bindWeekCard(id, get, set, rerender, mode){
@@ -2700,11 +2868,28 @@
     return f(a) + ' – ' + f(b);
   }
 
+  var cardioView = 'semana';   // semana | treinos | evolucao | metas
+  function segCardio(){
+    return '<div class="seg">' +
+      [['semana','Semana'],['treinos','Treinos'],['evolucao','Evolução'],['metas','Metas']].map(function(v){
+        return '<button class="seg-b'+(cardioView===v[0]?' on':'')+'" data-cv="'+v[0]+'">'+v[1]+'</button>';
+      }).join('') + '</div>';
+  }
+  function ligarSeg(host){
+    bindAll(host, '[data-cv]', function(b){
+      cardioView = b.getAttribute('data-cv'); renderCardio(); scrollTop();
+    });
+  }
+
   function renderCardio(){
     touchState();
     var host = document.getElementById('cardioList');
     if (!host) return;
     if (openCardioId){ renderCardioDetail(); return; }
+    if (openCwId){ renderCwDetail(); return; }
+    if (cardioView === 'treinos'){ renderCwLista(host); return; }
+    if (cardioView === 'evolucao'){ renderCardioStats(host); return; }
+    if (cardioView === 'metas'){ renderMetas(host); return; }
 
     var ws = weekStart(cardioWeek), we = addDays(ws, 7);
     var weekLogs = CARDIO_LOGS.filter(function(l){ return l.date >= ws && l.date < we; });
@@ -2736,7 +2921,7 @@
       '</div><div class="head-actions">' +
         '<button class="icon-btn" id="cardioShare" aria-label="Importar ou exportar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M5 15v4.5h14V15"/></svg></button>' +
         '<button class="icon-btn primary" id="cardioNew" aria-label="Novo protocolo" style="background:var(--cardio);border-color:var(--cardio)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>' +
-      '</div></div>' +
+      '</div></div>' + segCardio() +
       weekCardHtml(cardioWeek, 'cardio', 'wkCardio') +
       '<div class="stack-lg"><div class="stack"><h2 class="section">Protocolos</h2>' +
         activeCardios().map(function(c){
@@ -2748,6 +2933,10 @@
               (istoday ? '<span class="sug-flag" style="color:var(--cardio)">Marcado para hoje</span>' : '') +
               '<span class="cd-name">'+esc(c.name)+'</span>' +
               '<span class="cd-meta">'+resumoPartes(c)+'</span></button>' +
+            ((pHoje && pHoje.workout_id && cwById[pHoje.workout_id])
+              ? '<button class="cd-check" data-cwgo="'+pHoje.workout_id+'" aria-label="Fazer o treino de hoje" style="color:var(--cardio)">' +
+                  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5l12 7.5-12 7.5z"/></svg></button>'
+              : '') +
             '<button class="cd-check'+(done?' on':'')+'" data-done="'+c.id+'" aria-label="Marcar como feito">' +
               '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(done?3:2.2)+'" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>' +
             '</button></div>';
@@ -2755,12 +2944,7 @@
         (activeCardios().length ? '' : '<div class="empty">Nenhum protocolo ainda. Toque no + para criar o primeiro.</div>') +
         '<button class="btn dashed" id="cardioAvulso">+ Registrar outro cardio</button></div>' +
         (CARDIOS.filter(function(c){ return c.archived; }).length
-          ? '<div class="stack"><h2 class="section">Arquivados</h2>' +
-            CARDIOS.filter(function(c){ return c.archived; }).map(function(c){
-              return '<button class="cd-card" style="opacity:.6;display:block" data-unarch="'+c.id+'">' +
-                '<span class="cd-name">'+esc(c.name)+'</span>' +
-                '<span class="cd-meta">Toque para restaurar</span></button>';
-            }).join('') + '</div>' : '') +
+          ? botaoArquivo(CARDIOS.filter(function(c){ return c.archived; }).length, 'protocolos') : '') +
         '<div class="stack"><h2 class="section">Meta da semana</h2>' +
           '<button class="ed-row" id="cardioMeta" style="width:100%;text-align:left">' +
             '<span><span class="ed-n">'+(SETTINGS.metaSemanal ? SETTINGS.metaSemanal+' min por semana' : 'Sem meta — segue o plano')+'</span>' +
@@ -2775,6 +2959,8 @@
           }).join('') + '</div></div>' : '<div class="empty">Nenhum cardio nesta semana.</div>') +
         '</div></div>';
 
+    ligarSeg(host);
+    bindAll(host, '[data-arqabrir]', function(b){ openArquivo(b.getAttribute('data-arqabrir')); });
     document.getElementById('cardioShare').addEventListener('click', function(){ openExportSheet('cardio'); });
     document.getElementById('cardioNew').addEventListener('click', function(){ openCardioEditor(null); });
     bindWeekCard('wkCardio', function(){ return cardioWeek; },
@@ -2788,12 +2974,32 @@
       scrollTop();
     });
     bindAll(host, '[data-done]', function(b){ openCardioLogSheet(b.getAttribute('data-done')); });
+    bindAll(host, '[data-cwgo]', function(b){ iniciarExecucao(b.getAttribute('data-cwgo')); });
     document.getElementById('cardioMeta').addEventListener('click', openMetaSheet);
     bindAll(host, '[data-log]', function(b){ openCardioEditSheet(b.getAttribute('data-log')); });
     bindAll(host, '[data-unarch]', function(b){
       var cx = cardioById[b.getAttribute('data-unarch')];
       cx.archived = false; cx.archived_at = null; touchState(); renderCardio();
     });
+    bindAll(host, '[data-arqdel]', function(b){
+      if (b.getAttribute('data-armado') !== '1'){
+        b.setAttribute('data-armado', '1');
+        toast('Toque de novo pra excluir de vez', 'warn');
+        setTimeout(function(){ b.removeAttribute('data-armado'); }, 4000);
+        return;
+      }
+      excluirProtocolo(b.getAttribute('data-arqdel'));
+      renderCardio(); renderAgenda();
+    });
+  }
+
+  /* apagar o protocolo nunca apaga o que já foi feito: a sessão só perde o dono */
+  function excluirProtocolo(id){
+    var n = CARDIO_LOGS.filter(function(l){ return l.cardio_id === id; }).length;
+    CARDIO_LOGS.forEach(function(l){ if (l.cardio_id === id) l.cardio_id = null; });
+    CARDIOS = CARDIOS.filter(function(x){ return x.id !== id; });
+    reindexCardios(); reindexDays(); touchState();
+    toast(n ? 'Protocolo excluído · ' + n + (n === 1 ? ' sessão mantida' : ' sessões mantidas') : 'Protocolo excluído');
   }
 
   function renderCardioDetail(){
@@ -2851,7 +3057,13 @@
           }).join('') + '</div></div></div>'
         : '<div class="empty">Sem sessões registradas.</div>') +
       '<div style="margin-top:22px"><button class="btn ghost" id="cardioEdit">Editar protocolo</button></div>' +
-      '<div style="margin-top:12px"><button class="btn danger" id="cardioArchive">Arquivar protocolo</button></div>';
+      '<div style="margin-top:12px"><button class="btn ghost" id="cardioArchive">Arquivar protocolo</button></div>' +
+      '<div style="margin-top:10px"><button class="btn danger" id="cardioDel">Excluir protocolo</button>' +
+        '<p class="note" style="margin-top:8px;text-align:center">' +
+          (logs.length
+            ? 'As ' + logs.length + (logs.length === 1 ? ' sessão já registrada continua' : ' sessões já registradas continuam') + ' no histórico, como avulsas.'
+            : 'Nenhuma sessão registrada neste protocolo.') +
+        '</p></div>';
 
     document.getElementById('cardioBack').addEventListener('click', function(){
       openCardioId = null;
@@ -2861,6 +3073,21 @@
     });
     document.getElementById('cardioLogBtn').addEventListener('click', function(){ openCardioLogSheet(c.id); });
     document.getElementById('cardioEdit').addEventListener('click', function(){ openCardioEditor(c.id); });
+    var cdel = document.getElementById('cardioDel'), cdelArmado = false;
+    cdel.addEventListener('click', function(){
+      if (!cdelArmado){
+        cdelArmado = true; cdel.textContent = 'Confirmar exclusão — não dá pra desfazer';
+        setTimeout(function(){
+          if (cdelArmado){ cdelArmado = false; cdel.textContent = 'Excluir protocolo'; }
+        }, 5000);
+        return;
+      }
+      excluirProtocolo(c.id);
+      openCardioId = null;
+      document.getElementById('cardioDetail').hidden = true;
+      document.getElementById('cardioList').hidden = false;
+      renderCardio(); renderAgenda();
+    });
     document.getElementById('cardioArchive').addEventListener('click', function(){
       c.archived = true; c.archived_at = new Date().toISOString(); openCardioId = null;
       document.getElementById('cardioDetail').hidden = true;
@@ -3068,7 +3295,7 @@
     cdDraft = c
       ? {id:c.id, name:c.name, note:c.note||'',
          parts: partsDe(c).map(function(pt){
-           return {days:(pt.days||[]).slice(), tipo:pt.tipo||'', target:limpaAlvo(pt.target)};
+           return {days:(pt.days||[]).slice(), tipo:pt.tipo||'', target:limpaAlvo(pt.target), workout_id: pt.workout_id || null};
          })}
       : {id:null, name:'', note:'', parts:[{days:[], tipo:'', target:limpaAlvo(null)}]};
     cdPick = null; cdBusca = '';
@@ -3131,6 +3358,15 @@
           }).join('') + '</div>' +
         '<div class="ed-grid">' + campo(i,'duration','min') + campo(i,'distance','km','0.1') +
           campo(i,'incline','% inc','0.5') + campo(i,'level','nível') + '</div>' +
+        (cwAtivos().length
+          ? '<div style="margin-top:9px"><div class="eyebrow" style="margin-bottom:6px">Treino montado (opcional)</div>' +
+            '<div class="chips">' +
+              '<button class="chip" data-cwpick="" data-pi="'+i+'"'+(!pt.workout_id?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>Nenhum</button>' +
+              cwAtivos().map(function(w){
+                var on = pt.workout_id === w.id;
+                return '<button class="chip" data-cwpick="'+w.id+'" data-pi="'+i+'"'+(on?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+esc(w.name)+'</button>';
+              }).join('') + '</div></div>'
+          : '') +
         '<div class="ed-grid" style="grid-template-columns:1fr 1fr">' +
           campo(i,'speed','km/h','0.1') + '</div>' +
       '</div>';
@@ -3169,6 +3405,11 @@
       d.parts.push({days:[], tipo:'', target:{duration:'',distance:'',incline:'',level:'',speed:''}});
       cdPick = d.parts.length - 1; cdBusca = ''; renderCardioEditor();
     });
+    bindAll(host, '[data-cwpick]', function(b){
+      var id = b.getAttribute('data-cwpick');
+      d.parts[+b.getAttribute('data-pi')].workout_id = id || null;
+      renderCardioEditor();
+    });
     bindAll(host, '.dow-b', function(b){
       var dow = +b.getAttribute('data-d'), i = +b.getAttribute('data-pi');
       var dias = d.parts[i].days, k = dias.indexOf(dow);
@@ -3203,7 +3444,7 @@
           var v = parseFloat(pt.target[k]);
           if (!isNaN(v) && v > 0) tgt[k] = v;
         });
-        return {days:pt.days.slice(), tipo:pt.tipo, target:tgt};
+        return {days:pt.days.slice(), tipo:pt.tipo, target:tgt, workout_id: pt.workout_id || null};
       });
 
       if (d.id){
@@ -3356,6 +3597,1005 @@
     document.getElementById('sheetHost').innerHTML = '';
     lockScroll(false);
     renderCardio();
+  }
+
+
+  /* ===================== CARDIO ESTRUTURADO ===================== */
+  /* planejado e realizado são coisas separadas: a etapa do plano nunca
+     é confundida com o que saiu de verdade. */
+
+  var STEP_TIPOS = [
+    ['aquecimento',  'Aquecimento'],
+    ['tiro',         'Tiro'],
+    ['recuperacao',  'Recuperação'],
+    ['corrida',      'Corrida'],
+    ['bloco',        'Bloco de ritmo'],
+    ['subida',       'Subida'],
+    ['desaquecimento','Desaquecimento']
+  ];
+  function stepLabel(k){
+    for (var i=0;i<STEP_TIPOS.length;i++) if (STEP_TIPOS[i][0]===k) return STEP_TIPOS[i][1];
+    return 'Etapa';
+  }
+  var CW_TIPOS = {
+    corrida: [['intervalado','Intervalado'],['continuo','Contínua leve'],['progressivo','Progressiva'],
+              ['ritmo','Ritmo / limiar'],['longo','Longa']],
+    bike:    [['pedal_leve','Pedal leve'],['resistencia','Resistência'],['longo','Longa distância'],
+              ['intervalado','Intervalado'],['subidas','Subidas']]
+  };
+  function cwTipoLabel(w){
+    var L = CW_TIPOS[w.modality] || [];
+    for (var i=0;i<L.length;i++) if (L[i][0]===w.kind) return L[i][1];
+    return w.modality === 'bike' ? 'Pedal' : 'Corrida';
+  }
+
+  /* ---------- tempo, pace, distância ---------- */
+  function fmtDur(sec){
+    sec = Math.max(0, Math.round(sec || 0));
+    var h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), x = sec%60;
+    return h ? (h + ':' + pad2(m) + ':' + pad2(x)) : (m + ':' + pad2(x));
+  }
+  function parseDur(t){
+    t = String(t||'').trim(); if (!t) return 0;
+    var a = t.split(':').map(function(x){ return parseInt(x,10)||0; });
+    if (a.length === 3) return a[0]*3600 + a[1]*60 + a[2];
+    if (a.length === 2) return a[0]*60 + a[1];
+    return a[0]*60;                       /* só número = minutos */
+  }
+  function fmtPace(sec){
+    if (!sec) return '–';
+    sec = Math.round(sec);
+    return Math.floor(sec/60) + ':' + pad2(sec%60);
+  }
+  function parsePace(t){
+    t = String(t||'').trim(); if (!t) return 0;
+    var a = t.split(':').map(function(x){ return parseInt(x,10)||0; });
+    return a.length >= 2 ? a[0]*60 + a[1] : a[0]*60;
+  }
+  function fmtDist(m){
+    if (!m) return '–';
+    return m >= 1000 ? fmt(m/1000, 2).replace(/[.,]00$/,'') + ' km' : Math.round(m) + ' m';
+  }
+  function paceDe(distM, durS){
+    if (!distM || !durS) return 0;
+    return durS / (distM/1000);
+  }
+  function velDe(distM, durS){
+    if (!distM || !durS) return 0;
+    return (distM/1000) / (durS/3600);
+  }
+
+  /* total planejado de uma etapa, já contando as repetições e o intervalo */
+  function stepTotal(st){
+    var reps = Math.max(1, st.reps || 1);
+    var d = (st.dist || 0) * reps;
+    var dur = (st.dur || 0) * reps;
+    if (!dur && st.dist && st.pace) dur = (st.dist/1000) * st.pace * reps;
+    dur += (st.rest || 0) * Math.max(0, reps - (st.kind === 'recuperacao' ? 0 : 1));
+    return {dist:d, dur:dur};
+  }
+  function cwTotal(w){
+    var d = 0, t = 0;
+    (w.steps || []).forEach(function(st){ var x = stepTotal(st); d += x.dist; t += x.dur; });
+    return {dist:d, dur:t};
+  }
+  function cwResumo(w){
+    var t = cwTotal(w), p = [];
+    if (t.dist) p.push(fmtDist(t.dist));
+    if (t.dur) p.push(fmtDur(t.dur));
+    p.push((w.steps||[]).length + ((w.steps||[]).length === 1 ? ' etapa' : ' etapas'));
+    return p.join(' · ');
+  }
+  /* a etapa escrita em uma linha, do jeito que se fala */
+  function stepTexto(st){
+    var reps = Math.max(1, st.reps || 1), p = [];
+    var alvo = [];
+    if (st.dist) alvo.push(fmtDist(st.dist));
+    if (st.dur)  alvo.push(fmtDur(st.dur));
+    p.push((reps > 1 ? reps + '× ' : '') + (alvo.join(' / ') || '—'));
+    if (st.pace) p.push(fmtPace(st.pace) + '/km');
+    if (st.intens) p.push('esforço ' + st.intens);
+    if (st.rest) p.push(fmtDur(st.rest) + ' de intervalo');
+    return p.join(' · ');
+  }
+
+
+  /* ---------- editor de treino estruturado ---------- */
+  var cwDraft = null, cwPickStep = null;
+
+  function novoStep(kind){
+    return {id:newId(), kind:kind || 'corrida', reps:1, dist:null, dur:null,
+            pace:null, intens:null, rest:null, note:''};
+  }
+  function openCwEditor(id){
+    var w = id ? cwById[id] : null;
+    cwDraft = w
+      ? {id:w.id, name:w.name, modality:w.modality || 'corrida', kind:w.kind || null, note:w.note || '',
+         steps:(w.steps||[]).map(function(x){ return JSON.parse(JSON.stringify(x)); })}
+      : {id:null, name:'', modality:'corrida', kind:'intervalado', note:'',
+         steps:[novoStep('aquecimento'), novoStep('tiro'), novoStep('recuperacao'), novoStep('desaquecimento')]};
+    cwPickStep = null;
+    renderCwEditor();
+  }
+
+  function cwCampo(i, campo, rot, ph, tipo){
+    var st = cwDraft.steps[i], v = st[campo];
+    var val = (campo === 'dur' || campo === 'rest') ? (v ? fmtDur(v) : '')
+            : (campo === 'pace') ? (v ? fmtPace(v) : '')
+            : (v === null || v === undefined ? '' : v);
+    return '<div class="ed-f"><label>'+rot+'</label>' +
+      '<input type="'+(tipo||'number')+'"'+(tipo?'':' inputmode="numeric"')+
+      ' value="'+String(val).replace(/"/g,'&quot;')+'" placeholder="'+ph+'"' +
+      ' data-sf="'+campo+'" data-si="'+i+'" aria-label="'+rot+'"></div>';
+  }
+
+  function renderCwEditor(){
+    var d = cwDraft, host = document.getElementById('sheetHost');
+
+    if (cwPickStep !== null){
+      host.innerHTML =
+        '<div class="scrim" id="scrimSK"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Tipo de etapa">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>Tipo da etapa</h3>' +
+            '<button class="btn ghost sm" id="skVolta">Voltar</button></div>' +
+          '<div class="chips" style="margin-top:14px">' +
+            STEP_TIPOS.map(function(t){
+              var on = d.steps[cwPickStep].kind === t[0];
+              return '<button class="chip" data-sk="'+t[0]+'"'+(on?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+t[1]+'</button>';
+            }).join('') + '</div></div>';
+      lockScroll(true);
+      function voltaSk(){ cwPickStep = null; renderCwEditor(); }
+      document.getElementById('scrimSK').addEventListener('click', voltaSk);
+      document.getElementById('skVolta').addEventListener('click', voltaSk);
+      bindAll(host, '[data-sk]', function(b){
+        d.steps[cwPickStep].kind = b.getAttribute('data-sk'); voltaSk();
+      });
+      return;
+    }
+
+    var tot = cwTotal(d);
+    host.innerHTML =
+      '<div class="scrim" id="scrimCW"></div>' +
+      '<div class="sheet" role="dialog" aria-label="Treino de cardio">' +
+        '<div class="grabber"></div>' +
+        '<div class="spread"><h3>'+(d.id ? 'Editar treino' : 'Novo treino')+'</h3>' +
+          '<button class="btn ghost sm" id="cwClose">Fechar</button></div>' +
+
+        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Nome</div>' +
+          '<input class="txt" id="cwName" type="text" value="'+esc(d.name).replace(/"/g,'&quot;')+'" placeholder="Intervalado de velocidade" aria-label="Nome"></div>' +
+
+        '<div class="eyebrow" style="margin:16px 0 8px">Modalidade</div>' +
+        '<div class="chips">' +
+          [['corrida','Corrida'],['bike','Bicicleta']].map(function(m){
+            return '<button class="chip" data-cwmod="'+m[0]+'"'+(d.modality===m[0]?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+m[1]+'</button>';
+          }).join('') + '</div>' +
+
+        '<div class="eyebrow" style="margin:16px 0 8px">Metodologia</div>' +
+        '<div class="chips">' +
+          (CW_TIPOS[d.modality]||[]).map(function(t){
+            return '<button class="chip" data-cwkind="'+t[0]+'"'+(d.kind===t[0]?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+t[1]+'</button>';
+          }).join('') + '</div>' +
+
+        '<div class="spread" style="margin:18px 0 8px">' +
+          '<span class="eyebrow">Etapas</span>' +
+          '<span class="note">'+(tot.dist?fmtDist(tot.dist):'')+(tot.dist&&tot.dur?' · ':'')+(tot.dur?fmtDur(tot.dur):'')+'</span></div>' +
+
+        '<div id="cwSteps">' + d.steps.map(stepEditorHtml).join('') + '</div>' +
+        '<button class="btn dashed" id="cwAdd">+ Adicionar etapa</button>' +
+
+        '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Observação</div>' +
+          '<input class="txt" id="cwNote" type="text" value="'+esc(d.note).replace(/"/g,'&quot;')+'" placeholder="opcional" aria-label="Observação"></div>' +
+
+        '<div style="margin-top:20px"><button class="btn" id="cwSave" style="background:var(--cardio)">'+
+          (d.id ? 'Salvar' : 'Criar treino')+'</button></div>' +
+      '</div>';
+    lockScroll(true);
+
+    document.getElementById('scrimCW').addEventListener('click', fecharCw);
+    document.getElementById('cwClose').addEventListener('click', fecharCw);
+    document.getElementById('cwName').addEventListener('input', function(e){ d.name = e.target.value; });
+    document.getElementById('cwNote').addEventListener('input', function(e){ d.note = e.target.value; });
+    bindAll(host, '[data-cwmod]', function(b){
+      d.modality = b.getAttribute('data-cwmod');
+      var L = CW_TIPOS[d.modality] || [];
+      if (!L.some(function(t){ return t[0] === d.kind; })) d.kind = L.length ? L[0][0] : null;
+      renderCwEditor();
+    });
+    bindAll(host, '[data-cwkind]', function(b){ d.kind = b.getAttribute('data-cwkind'); renderCwEditor(); });
+    bindAll(host, '[data-pickstep]', function(b){ cwPickStep = +b.getAttribute('data-pickstep'); renderCwEditor(); });
+    bindAll(host, '[data-stepdel]', function(b){
+      d.steps.splice(+b.getAttribute('data-stepdel'), 1); renderCwEditor();
+    });
+    bindAll(host, '[data-stepdup]', function(b){
+      var i = +b.getAttribute('data-stepdup');
+      var c = JSON.parse(JSON.stringify(d.steps[i])); c.id = newId();
+      d.steps.splice(i+1, 0, c); renderCwEditor();
+    });
+    document.getElementById('cwAdd').addEventListener('click', function(){
+      d.steps.push(novoStep('corrida')); renderCwEditor();
+    });
+    enableDrag(document.getElementById('cwSteps'),
+               {sel:'.st-row', arr:function(){ return d.steps; }, after:renderCwEditor});
+
+    document.getElementById('cwSave').addEventListener('click', function(){
+      if (!d.name.trim()){ toast('Dê um nome ao treino', 'warn'); document.getElementById('cwName').focus(); return; }
+      if (!d.steps.length){ toast('Adicione pelo menos uma etapa', 'warn'); return; }
+      var vazia = d.steps.filter(function(st){ return !st.dist && !st.dur; }).length;
+      if (vazia){ toast('Cada etapa precisa de distância ou tempo', 'warn'); return; }
+      var steps = d.steps.map(function(st){
+        return {id: isUuid(st.id) ? st.id : newId(), kind:st.kind, reps:Math.max(1, st.reps||1),
+                dist:st.dist||null, dur:st.dur||null, pace:st.pace||null,
+                intens:st.intens||null, rest:st.rest||null, note:st.note||''};
+      });
+      if (d.id){
+        var w2 = cwById[d.id];
+        w2.name = d.name.trim(); w2.modality = d.modality; w2.kind = d.kind;
+        w2.note = d.note.trim(); w2.steps = steps;
+      } else {
+        CWORKOUTS.push({id:newId(), name:d.name.trim(), modality:d.modality, kind:d.kind,
+                        note:d.note.trim(), archived:false, created_at:new Date().toISOString(),
+                        archived_at:null, steps:steps});
+      }
+      reindexCw(); touchState(); fecharCw();
+      toast('Treino salvo');
+    });
+
+    Array.prototype.forEach.call(host.querySelectorAll('[data-sf]'), function(inp){
+      inp.addEventListener('input', function(){
+        var i = +inp.getAttribute('data-si'), f = inp.getAttribute('data-sf'), v = inp.value.trim();
+        var st = d.steps[i];
+        if (f === 'dur' || f === 'rest') st[f] = v ? parseDur(v) : null;
+        else if (f === 'pace') st[f] = v ? parsePace(v) : null;
+        else if (f === 'dist'){
+          var n = parseFloat(v.replace(',','.'));
+          st.dist = isNaN(n) ? null : (n < 100 ? Math.round(n*1000) : Math.round(n));
+        }
+        else { var k = parseInt(v,10); st[f] = isNaN(k) ? (f==='reps'?1:null) : Math.max(f==='reps'?1:0, k); }
+        /* a linha embaixo da etapa acompanha o que estou digitando */
+        var linha = inp.closest('.st-row').querySelector('.note');
+        if (linha) linha.textContent = stepTexto(st);
+        atualizaTotalCw();
+      });
+    });
+  }
+
+  function atualizaTotalCw(){
+    var el = document.querySelector('#sheetHost .spread .note');
+    if (!el || !cwDraft) return;
+    var t = cwTotal(cwDraft);
+    el.textContent = (t.dist?fmtDist(t.dist):'') + (t.dist&&t.dur?' · ':'') + (t.dur?fmtDur(t.dur):'');
+  }
+
+  function stepEditorHtml(st, i){
+    return '<div class="card st-row" style="padding:12px;margin-bottom:9px">' +
+      '<div style="display:grid;grid-template-columns:26px 1fr auto auto;gap:6px;align-items:center;margin-bottom:9px">' +
+        '<button class="grip" data-grip aria-label="Arrastar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 7h.01M9 12h.01M9 17h.01M15 7h.01M15 12h.01M15 17h.01"/></svg></button>' +
+        '<button class="cd-tipo" data-pickstep="'+i+'" style="text-align:left">' +
+          '<span class="ed-n">'+stepLabel(st.kind)+'</span>' +
+          '<span class="ed-e">toque para trocar</span></button>' +
+        '<button class="ed-x" data-stepdup="'+i+'" aria-label="Duplicar etapa" style="font-size:17px;line-height:1">+</button>' +
+        '<button class="ed-x" data-stepdel="'+i+'" aria-label="Remover etapa">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' +
+      '</div>' +
+      '<div class="ed-grid">' +
+        cwCampo(i,'reps','Repete','1') +
+        cwCampo(i,'dist','Distância','400') +
+        cwCampo(i,'dur','Tempo','2:00','text') +
+        cwCampo(i,'pace','Pace','5:00','text') +
+      '</div>' +
+      '<div class="ed-grid" style="grid-template-columns:1fr 1fr;margin-top:7px">' +
+        cwCampo(i,'intens','Esforço 1-10','8') +
+        cwCampo(i,'rest','Intervalo','2:00','text') +
+      '</div>' +
+      '<div class="note" style="margin-top:8px">'+stepTexto(st)+'</div>' +
+    '</div>';
+  }
+
+  function fecharCw(){
+    document.getElementById('sheetHost').innerHTML = '';
+    lockScroll(false); cwDraft = null; cwPickStep = null;
+    renderCardio();
+  }
+
+
+  /* ---------- lista e detalhe dos treinos estruturados ---------- */
+  var openCwId = null;
+
+  function logsDoTreino(wid){
+    return CARDIO_LOGS.filter(function(l){ return l.workout_id === wid; });
+  }
+
+  function renderCwLista(host){
+    var L = cwAtivos();
+    host.innerHTML =
+      '<div class="page-head">' + watermark('var(--cardio)') + '<div>' +
+        '<h1 class="page">Cardio</h1>' +
+        '<div class="page-sub">'+L.length+(L.length===1?' treino montado':' treinos montados')+'</div>' +
+      '</div><div class="head-actions">' +
+        '<button class="icon-btn primary" id="cwNew" aria-label="Novo treino" style="background:var(--cardio);border-color:var(--cardio)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>' +
+      '</div></div>' + segCardio() +
+      '<div class="stack-lg"><div class="stack grid-cards">' +
+        (L.length
+          ? L.map(function(w){
+              var n = logsDoTreino(w.id).length;
+              return '<div class="cd-card">' +
+                '<button class="cd-main" data-cw="'+w.id+'">' +
+                  '<span class="sug-flag" style="color:var(--cardio)">'+cwTipoLabel(w)+'</span>' +
+                  '<span class="cd-name">'+esc(w.name)+'</span>' +
+                  '<span class="cd-meta">'+cwResumo(w)+(n?' · '+n+(n===1?' feito':' feitos'):'')+'</span></button>' +
+                '<button class="cd-check" data-cwgo="'+w.id+'" aria-label="Fazer agora" style="color:var(--cardio)">' +
+                  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5l12 7.5-12 7.5z"/></svg>' +
+                '</button></div>';
+            }).join('')
+          : '<div class="empty">Nenhum treino montado. Toque no + para criar o primeiro — aquecimento, tiros, recuperação, desaquecimento.</div>') +
+      '</div>' +
+      (CWORKOUTS.filter(function(w){ return w.archived; }).length
+        ? botaoArquivo(CWORKOUTS.filter(function(w){ return w.archived; }).length, 'cwork') : '') +
+      '</div>';
+
+    ligarSeg(host);
+    bindAll(host, '[data-arqabrir]', function(b){ openArquivo(b.getAttribute('data-arqabrir')); });
+    document.getElementById('cwNew').addEventListener('click', function(){ openCwEditor(null); });
+    bindAll(host, '[data-cw]', function(b){ openCwId = b.getAttribute('data-cw'); renderCardio(); scrollTop(); });
+    bindAll(host, '[data-cwgo]', function(b){ iniciarExecucao(b.getAttribute('data-cwgo')); });
+    bindAll(host, '[data-cwunarch]', function(b){
+      var w = cwById[b.getAttribute('data-cwunarch')];
+      w.archived = false; w.archived_at = null; touchState(); renderCardio();
+    });
+  }
+
+  function renderCwDetail(){
+    var w = cwById[openCwId];
+    if (!w){ openCwId = null; renderCardio(); return; }
+    var host = document.getElementById('cardioList');
+    var tot = cwTotal(w), feitos = logsDoTreino(w.id);
+
+    /* evolução deste treino: pace médio das sessões, quando houver distância */
+    var pts = feitos.filter(function(l){ return l.pace; });
+    var chart = '';
+    if (pts.length > 1){
+      var ult = pts[pts.length-1].pace, pri = pts[0].pace, d = Math.round(pri - ult);
+      chart = '<div class="card" style="margin-bottom:16px;padding:14px">' +
+        '<div class="spread" style="margin-bottom:10px">' +
+          '<div><div class="eyebrow">Pace médio</div>' +
+            '<div class="num" style="font-size:24px;font-weight:600;letter-spacing:-.02em">'+fmtPace(ult)+
+            ' <span style="font-size:12px;color:var(--muted);font-weight:500">/km</span></div></div>' +
+          '<div style="text-align:right"><div class="eyebrow">'+pts.length+' sessões</div>' +
+            '<div class="num" style="font-size:14px;font-weight:600;color:'+(d>=0?'var(--good)':'var(--accent-ink)')+'">'+
+            (d>=0?'−':'+')+fmtPace(Math.abs(d))+'</div></div></div>' +
+        lineChart({height:116, padLeft:30, padRight:38, aria:'Pace de '+w.name,
+          series:[{points: pts.map(function(l){ return {y:l.pace, label:shortDate(l.date)}; }),
+                   color:'var(--cardio)', width:2.2, dots:true, area:true, endLabel:fmtPace(ult)}]}) +
+      '</div>';
+    }
+
+    host.innerHTML =
+      '<button class="back" id="cwBack"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Treinos</button>' +
+      '<div class="page-head" style="padding-bottom:12px">' + watermark('var(--cardio)') + '<div>' +
+        '<h1 class="page" style="font-size:26px">'+esc(w.name)+'</h1>' +
+        '<div class="page-sub">'+cwTipoLabel(w)+' · '+cwResumo(w)+(w.note?' · '+esc(w.note):'')+'</div></div></div>' +
+
+      '<div style="margin-bottom:18px"><button class="btn" id="cwGo" style="background:var(--cardio)">Fazer este treino</button></div>' +
+      chart +
+
+      '<div class="card" style="margin-bottom:16px"><div class="eyebrow" style="margin-bottom:10px">Etapas planejadas</div>' +
+        '<div class="pr-list">' + w.steps.map(function(st, i){
+          return '<div class="pr-row"><div>' +
+            '<div class="pr-name">'+(i+1)+'. '+stepLabel(st.kind)+'</div>' +
+            '<div class="pr-date">'+stepTexto(st)+'</div></div></div>';
+        }).join('') + '</div></div>' +
+
+      (feitos.length
+        ? '<div class="stack"><h2 class="section">Sessões deste treino</h2><div class="card"><div class="pr-list">' +
+          feitos.slice().reverse().map(function(l){
+            var det = [];
+            if (l.distance) det.push(fmt(l.distance,2)+' km');
+            if (l.pace) det.push(fmtPace(l.pace)+'/km');
+            if (l.rpe) det.push('esforço '+l.rpe);
+            return '<button class="pr-row" data-log="'+l.id+'"><div><div class="pr-name">'+longDate(l.date)+'</div>' +
+              '<div class="pr-date">'+det.join(' · ')+'</div></div>' +
+              '<div class="pr-val">'+(l.duration||'–')+'<small>min</small></div></button>';
+          }).join('') + '</div></div></div>'
+        : '<div class="empty">Ainda não fez este treino.</div>') +
+
+      '<div style="margin-top:22px"><button class="btn ghost" id="cwEdit">Editar treino</button></div>' +
+      '<div style="margin-top:12px"><button class="btn ghost" id="cwArch">Arquivar treino</button></div>' +
+      '<div style="margin-top:10px"><button class="btn danger" id="cwDel">Excluir treino</button>' +
+        '<p class="note" style="margin-top:8px;text-align:center">' +
+          (feitos.length ? 'As '+feitos.length+(feitos.length===1?' sessão já feita continua':' sessões já feitas continuam')+' no histórico.' : 'Nenhuma sessão registrada.') +
+        '</p></div>';
+
+    function volta(){ openCwId = null; renderCardio(); scrollTop(); }
+    document.getElementById('cwBack').addEventListener('click', volta);
+    document.getElementById('cwGo').addEventListener('click', function(){ iniciarExecucao(w.id); });
+    document.getElementById('cwEdit').addEventListener('click', function(){ openCwEditor(w.id); });
+    document.getElementById('cwArch').addEventListener('click', function(){
+      w.archived = true; w.archived_at = new Date().toISOString(); touchState(); volta();
+    });
+    bindAll(host, '[data-log]', function(b){ openCardioEditSheet(b.getAttribute('data-log')); });
+
+    var dl = document.getElementById('cwDel'), armado = false;
+    dl.addEventListener('click', function(){
+      if (!armado){
+        armado = true; dl.textContent = 'Confirmar exclusão — não dá pra desfazer';
+        setTimeout(function(){ if (armado){ armado = false; dl.textContent = 'Excluir treino'; } }, 5000);
+        return;
+      }
+      /* o treino some, o que já foi feito fica */
+      var n = logsDoTreino(w.id).length;
+      CARDIO_LOGS.forEach(function(l){ if (l.workout_id === w.id) l.workout_id = null; });
+      CWORKOUTS = CWORKOUTS.filter(function(x){ return x.id !== w.id; });
+      reindexCw(); touchState(); volta();
+      toast(n ? 'Treino excluído · '+n+(n===1?' sessão mantida':' sessões mantidas') : 'Treino excluído');
+    });
+  }
+
+
+  /* ---------- execução do treino ---------- */
+  /* cada etapa planejada vira uma ou mais "voltas" na fila; o que o cronômetro
+     mede vira etapa EXECUTADA, separada da planejada. */
+  var RUN = null, runTimer = null;
+
+  function filaDe(w){
+    var fila = [];
+    (w.steps || []).forEach(function(st, pi){
+      var reps = Math.max(1, st.reps || 1);
+      for (var r = 1; r <= reps; r++){
+        fila.push({step_id:st.id, pos:pi, rep:r, reps:reps, kind:st.kind,
+                   dist:st.dist || null, dur:st.dur || null, pace:st.pace || null,
+                   intens:st.intens || null});
+        if (st.rest && r < reps) fila.push({step_id:st.id, pos:pi, rep:r, reps:reps,
+                   kind:'recuperacao', dist:null, dur:st.rest, pace:null, intens:null, auto:true});
+      }
+    });
+    return fila;
+  }
+
+  function iniciarExecucao(wid){
+    var w = cwById[wid];
+    if (!w || !(w.steps||[]).length){ toast('Esse treino não tem etapas', 'warn'); return; }
+    RUN = {wid:w.id, nome:w.name, modality:w.modality, fila:filaDe(w), i:0,
+           t0:Date.now(), pausadoEm:null, parado:0, stepT0:Date.now(), stepParado:0,
+           feitas:[], distAcum:0};
+    document.body.classList.add('locked');
+    desenhaRun();
+    runTimer = setInterval(tickRun, 250);
+  }
+
+  function runAgora(){
+    if (!RUN) return 0;
+    var fim = RUN.pausadoEm || Date.now();
+    return Math.max(0, Math.round((fim - RUN.t0 - RUN.parado)/1000));
+  }
+  function runStepSeg(){
+    if (!RUN) return 0;
+    var fim = RUN.pausadoEm || Date.now();
+    return Math.max(0, Math.round((fim - RUN.stepT0 - RUN.stepParado)/1000));
+  }
+
+  function desenhaRun(){
+    if (!RUN) return;
+    var host = document.getElementById('runHost');
+    if (!host){
+      host = document.createElement('div');
+      host.id = 'runHost';
+      document.body.appendChild(host);
+    }
+    var cur = RUN.fila[RUN.i] || null;
+    var prox = RUN.fila[RUN.i+1] || null;
+    var pct = Math.round(RUN.i / RUN.fila.length * 100);
+    var pausado = !!RUN.pausadoEm;
+
+    var alvo = cur ? (cur.dist ? fmtDist(cur.dist) : (cur.dur ? fmtDur(cur.dur) : '—')) : '—';
+    var sub = [];
+    if (cur){
+      if (cur.dist && cur.dur) sub.push('em ' + fmtDur(cur.dur));
+      if (cur.pace) sub.push(fmtPace(cur.pace) + '/km');
+      if (cur.intens) sub.push('esforço ' + cur.intens);
+      if (cur.reps > 1) sub.push('repetição ' + cur.rep + ' de ' + cur.reps);
+    }
+
+    host.innerHTML =
+      '<div class="run">' +
+        '<div class="run-top">' +
+          '<button class="btn ghost sm" id="runQuit">Encerrar</button>' +
+          '<span class="note">'+esc(RUN.nome)+'</span>' +
+          '<span class="num" style="font-size:13px;font-weight:600">'+(RUN.i+1)+'/'+RUN.fila.length+'</span>' +
+        '</div>' +
+        '<div class="run-mid">' +
+          '<div class="run-kind">'+(cur ? stepLabel(cur.kind) : 'Fim')+'</div>' +
+          '<div class="run-alvo">'+alvo+'</div>' +
+          '<div class="run-sub">'+(sub.join(' · ') || 'sem alvo definido')+'</div>' +
+          '<div class="run-sub num" style="margin-top:16px;font-size:30px;color:var(--text)">'+fmtDur(runStepSeg())+'</div>' +
+          '<div class="run-sub">nesta etapa</div>' +
+          (prox ? '<div class="run-prox">depois: '+stepLabel(prox.kind)+' · '+
+                   (prox.dist ? fmtDist(prox.dist) : fmtDur(prox.dur||0))+'</div>' : '<div class="run-prox">última etapa</div>') +
+        '</div>' +
+        '<div class="run-bar"><i style="width:'+pct+'%"></i></div>' +
+        '<div class="run-stats">' +
+          '<div class="run-st"><b>'+fmtDur(runAgora())+'</b><span>total</span></div>' +
+          '<div class="run-st"><b>'+(RUN.distAcum ? fmtDist(RUN.distAcum) : '–')+'</b><span>distância</span></div>' +
+          '<div class="run-st"><b>'+RUN.feitas.length+'</b><span>etapas feitas</span></div>' +
+        '</div>' +
+        '<div class="run-acts">' +
+          '<button class="btn ghost" id="runPause">'+(pausado ? 'Retomar' : 'Pausar')+'</button>' +
+          '<button class="btn" id="runNext" style="background:var(--cardio)">'+(prox ? 'Próxima etapa' : 'Concluir treino')+'</button>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('runPause').addEventListener('click', function(){
+      if (RUN.pausadoEm){
+        var p = Date.now() - RUN.pausadoEm;
+        RUN.parado += p; RUN.stepParado += p; RUN.pausadoEm = null;
+      } else RUN.pausadoEm = Date.now();
+      desenhaRun();
+    });
+    document.getElementById('runNext').addEventListener('click', proximaEtapa);
+    document.getElementById('runQuit').addEventListener('click', function(){
+      if (document.getElementById('runQuit').getAttribute('data-armado') === '1'){ encerrarRun(false); return; }
+      document.getElementById('runQuit').setAttribute('data-armado','1');
+      document.getElementById('runQuit').textContent = 'Jogar fora?';
+      toast('Toque de novo pra sair sem registrar', 'warn');
+      setTimeout(function(){
+        var b = document.getElementById('runQuit');
+        if (b){ b.removeAttribute('data-armado'); b.textContent = 'Encerrar'; }
+      }, 4000);
+    });
+  }
+
+  function tickRun(){
+    if (!RUN || RUN.pausadoEm) return;
+    var a = document.querySelector('#runHost .run-mid .num');
+    if (a) a.textContent = fmtDur(runStepSeg());
+    var t = document.querySelector('#runHost .run-st b');
+    if (t) t.textContent = fmtDur(runAgora());
+  }
+
+  function proximaEtapa(){
+    if (!RUN) return;
+    var cur = RUN.fila[RUN.i];
+    if (cur){
+      var seg = runStepSeg();
+      /* o que foi planejado continua no plano; aqui vai o que aconteceu */
+      RUN.feitas.push({id:newId(), step_id:cur.step_id, rep:cur.rep, kind:cur.kind,
+                       dist: cur.dist || null, dur: seg || null,
+                       pace: paceDe(cur.dist, seg) || null, note:''});
+      if (cur.dist) RUN.distAcum += cur.dist;
+    }
+    RUN.i++;
+    RUN.stepT0 = Date.now(); RUN.stepParado = 0;
+    if (RUN.pausadoEm) RUN.pausadoEm = Date.now();
+    if (RUN.i >= RUN.fila.length){ encerrarRun(true); return; }
+    desenhaRun();
+  }
+
+  function encerrarRun(concluiu){
+    clearInterval(runTimer); runTimer = null;
+    var r = RUN; RUN = null;
+    var host = document.getElementById('runHost');
+    if (host) host.remove();
+    document.body.classList.remove('locked');
+    if (!r) return;
+    if (!concluiu && !r.feitas.length){ toast('Treino descartado', 'warn'); renderCardio(); return; }
+    openRegistroSheet(r);
+  }
+
+
+  /* ---------- registro do que foi feito ---------- */
+  function openRegistroSheet(r){
+    var w = r.wid ? cwById[r.wid] : null;
+    var totalDur = r.feitas.reduce(function(a,x){ return a + (x.dur||0); }, 0) || runSegFallback(r);
+    var totalDist = r.distAcum || 0;
+    var bike = (r.modality === 'bike');
+    var f = {
+      min: Math.max(1, Math.round(totalDur/60)),
+      km: totalDist ? Math.round(totalDist/100)/10 : null,
+      rpe: null, hrAvg:null, hrMax:null, elev:null, spdMax:null, note:''
+    };
+
+    function render(){
+      var paceCalc = f.km ? paceDe(f.km*1000, f.min*60) : 0;
+      var velCalc  = f.km ? velDe(f.km*1000, f.min*60) : 0;
+      document.getElementById('sheetHost').innerHTML =
+        '<div class="scrim" id="scrimRG"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Registrar treino">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>Como foi?</h3>' +
+            '<button class="btn ghost sm" id="rgClose">Fechar</button></div>' +
+          '<div class="prev-note" style="margin-top:12px">' +
+            esc(r.nome) + ' · ' + r.feitas.length + (r.feitas.length===1?' etapa feita':' etapas feitas') +
+            ' · ' + fmtDur(totalDur) + ' no cronômetro</div>' +
+
+          '<div class="row" style="margin-top:14px;gap:8px">' +
+            '<div class="field" style="flex:1"><input id="rgMin" type="number" inputmode="numeric" value="'+(f.min||'')+'" aria-label="Minutos"><label for="rgMin">min</label></div>' +
+            '<div class="field" style="flex:1"><input id="rgKm" type="number" step="0.01" inputmode="decimal" value="'+(f.km||'')+'" placeholder="5" aria-label="Distância"><label for="rgKm">km</label></div></div>' +
+
+          '<div class="note" id="rgCalc" style="margin-top:8px">' +
+            (f.km ? (bike ? 'Velocidade média: ' + fmt(velCalc,1) + ' km/h' : 'Pace médio: ' + fmtPace(paceCalc) + '/km') : 'Põe a distância pra calcular o ' + (bike?'ritmo':'pace') + '.') +
+          '</div>' +
+
+          '<div class="row" style="margin-top:10px;gap:8px">' +
+            '<div class="field" style="flex:1"><input id="rgHrA" type="number" inputmode="numeric" value="'+(f.hrAvg||'')+'" placeholder="150" aria-label="FC média"><label for="rgHrA">FC méd</label></div>' +
+            '<div class="field" style="flex:1"><input id="rgHrM" type="number" inputmode="numeric" value="'+(f.hrMax||'')+'" placeholder="175" aria-label="FC máxima"><label for="rgHrM">FC máx</label></div></div>' +
+
+          (bike
+            ? '<div class="row" style="margin-top:8px;gap:8px">' +
+                '<div class="field" style="flex:1"><input id="rgSpd" type="number" step="0.1" inputmode="decimal" value="'+(f.spdMax||'')+'" placeholder="38" aria-label="Velocidade máxima"><label for="rgSpd">km/h máx</label></div>' +
+                '<div class="field" style="flex:1"><input id="rgElev" type="number" inputmode="numeric" value="'+(f.elev||'')+'" placeholder="320" aria-label="Elevação"><label for="rgElev">m subida</label></div></div>'
+            : '<div class="row" style="margin-top:8px"><div class="field" style="flex:1">' +
+                '<input id="rgElev" type="number" inputmode="numeric" value="'+(f.elev||'')+'" placeholder="120" aria-label="Elevação"><label for="rgElev">m subida</label></div></div>') +
+
+          '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:7px">Esforço</div>' +
+            rpeChipsHtml(f.rpe) +
+            '<input type="hidden" id="kRpe" value="'+(f.rpe||'')+'">' +
+            '<div class="note" id="kRpeTxt" style="margin-top:7px">'+rpeLegenda(f.rpe)+'</div></div>' +
+
+          '<div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:7px">Observação</div>' +
+            '<input class="txt" id="rgNote" type="text" value="'+esc(f.note).replace(/"/g,'&quot;')+'" placeholder="como o corpo respondeu, dor, clima..." aria-label="Observação"></div>' +
+
+          (r.feitas.length
+            ? '<div style="margin-top:16px"><div class="eyebrow" style="margin-bottom:8px">Etapas que saíram</div>' +
+              '<div class="card" style="padding:4px 12px"><div class="pr-list">' +
+                r.feitas.map(function(x, i){
+                  return '<div class="pr-row"><div><div class="pr-name" style="font-size:13.5px">'+(i+1)+'. '+stepLabel(x.kind)+'</div>' +
+                    '<div class="pr-date">'+(x.dist?fmtDist(x.dist)+' · ':'')+fmtDur(x.dur||0)+(x.pace?' · '+fmtPace(x.pace)+'/km':'')+'</div></div></div>';
+                }).join('') + '</div></div></div>'
+            : '') +
+
+          '<div style="margin-top:18px"><button class="btn" id="rgSave" style="background:var(--cardio)">Salvar treino</button></div>' +
+          '<div style="margin-top:10px"><button class="btn ghost sm" id="rgDrop">Descartar</button></div>' +
+        '</div>';
+      lockScroll(true);
+      ligarRpe();
+      document.getElementById('scrimRG').addEventListener('click', fecharRg);
+      document.getElementById('rgClose').addEventListener('click', fecharRg);
+      document.getElementById('rgDrop').addEventListener('click', function(){
+        if (document.getElementById('rgDrop').getAttribute('data-armado') === '1'){ fecharRg(); toast('Treino descartado','warn'); return; }
+        document.getElementById('rgDrop').setAttribute('data-armado','1');
+        document.getElementById('rgDrop').textContent = 'Confirmar descarte';
+        setTimeout(function(){
+          var b = document.getElementById('rgDrop');
+          if (b){ b.removeAttribute('data-armado'); b.textContent = 'Descartar'; }
+        }, 4000);
+      });
+      ['rgMin','rgKm'].forEach(function(id){
+        document.getElementById(id).addEventListener('input', function(){
+          f.min = parseInt(document.getElementById('rgMin').value,10) || 0;
+          f.km  = parseFloat(document.getElementById('rgKm').value) || null;
+          var pc = f.km ? paceDe(f.km*1000, f.min*60) : 0;
+          var vc = f.km ? velDe(f.km*1000, f.min*60) : 0;
+          document.getElementById('rgCalc').textContent = f.km
+            ? (bike ? 'Velocidade média: ' + fmt(vc,1) + ' km/h' : 'Pace médio: ' + fmtPace(pc) + '/km')
+            : ('Põe a distância pra calcular o ' + (bike?'ritmo':'pace') + '.');
+        });
+      });
+      document.getElementById('rgSave').addEventListener('click', salvar);
+    }
+
+    function salvar(){
+      var min = parseInt(document.getElementById('rgMin').value,10) || 0;
+      if (!min){ toast('Quanto tempo durou?', 'warn'); document.getElementById('rgMin').focus(); return; }
+      var km   = parseFloat(document.getElementById('rgKm').value) || null;
+      var hrA  = parseInt((document.getElementById('rgHrA')||{}).value,10) || null;
+      var hrM  = parseInt((document.getElementById('rgHrM')||{}).value,10) || null;
+      var elEl = document.getElementById('rgElev');
+      var elev = elEl ? (parseInt(elEl.value,10) || null) : null;
+      var spEl = document.getElementById('rgSpd');
+      var spdM = spEl ? (parseFloat(spEl.value) || null) : null;
+      var rpe  = parseInt(document.getElementById('kRpe').value,10) || null;
+      var nota = document.getElementById('rgNote').value.trim();
+
+      var melhores = r.feitas.filter(function(x){ return x.pace; }).map(function(x){ return x.pace; });
+      var log = {
+        id:newId(), cardio_id:null, workout_id: r.wid || null,
+        name: r.nome,
+        modality: ((w ? w.modality : r.modality) === 'bike') ? 'Bicicleta ao Ar Livre' : 'Corrida ao Ar Livre',
+        date: hoje(), duration: min, distance: km, incline:null, level:null, rpe: rpe,
+        pace: km ? Math.round(paceDe(km*1000, min*60)) : null,
+        bestPace: melhores.length ? Math.round(Math.min.apply(null, melhores)) : null,
+        hrAvg: hrA, hrMax: hrM,
+        spdAvg: km ? Math.round(velDe(km*1000, min*60)*10)/10 : null,
+        spdMax: spdM, elev: elev, cadence:null, note: nota,
+        steps: r.feitas
+      };
+      CARDIO_LOGS.push(log);
+      CARDIO_LOGS.sort(function(a,b){ return a.date - b.date; });
+      reindexDays(); touchState();
+      fecharRg(); renderAgenda();
+      var ganhos = metasBatidas(log);
+      toast(ganhos.length ? 'Treino salvo · ' + ganhos[0] : 'Treino salvo', ganhos.length ? 'pr' : 'ok');
+    }
+
+    function fecharRg(){
+      document.getElementById('sheetHost').innerHTML = '';
+      lockScroll(false); renderCardio();
+    }
+    render();
+  }
+
+  function runSegFallback(r){
+    return Math.max(60, Math.round((Date.now() - r.t0 - (r.parado||0))/1000));
+  }
+
+
+  /* ---------- evolução ---------- */
+  function modalidadeDe(l){
+    var w = l.workout_id ? cwById[l.workout_id] : null;
+    if (w) return w.modality;                      /* veio de treino montado: não tem dúvida */
+    var t = (l.modality || l.name || '').toLowerCase();
+    if (/bicicleta|bike|pedal|ciclismo/.test(t)) return 'bike';
+    if (/corrida|corre|trilha|atletismo|run/.test(t)) return 'corrida';
+    return 'outro';
+  }
+  function ehBike(l){ return modalidadeDe(l) === 'bike'; }
+  function ehCorrida(l){ return modalidadeDe(l) === 'corrida'; }
+  /* melhor marca numa distância: a sessão mais rápida com pelo menos essa distância */
+  function melhorMarca(km){
+    var best = null;
+    CARDIO_LOGS.filter(ehCorrida).forEach(function(l){
+      if (!l.distance || !l.duration || l.distance < km - 0.05) return;
+      var t = (l.duration*60) * (km / l.distance);   /* tempo proporcional na distância */
+      if (!best || t < best.t) best = {t:t, date:l.date, log:l};
+    });
+    return best;
+  }
+  function somaSemanas(filtro, n){
+    var out = [];
+    for (var k = n - 1; k >= 0; k--){
+      var ws = weekStart(-k), we = addDays(ws, 7);
+      var L = CARDIO_LOGS.filter(function(l){ return filtro(l) && l.date >= ws && l.date < we; });
+      out.push({
+        label: pad2(ws.getDate()) + '/' + pad2(ws.getMonth()+1),
+        km: L.reduce(function(a,l){ return a + (l.distance || 0); }, 0),
+        min: L.reduce(function(a,l){ return a + (l.duration || 0); }, 0),
+        n: L.length
+      });
+    }
+    return out;
+  }
+
+  function cardTile(rot, val, sub){
+    return '<div class="card" style="padding:13px">' +
+      '<div class="eyebrow" style="margin-bottom:5px">'+rot+'</div>' +
+      '<div class="num" style="font-size:21px;font-weight:600;letter-spacing:-.02em">'+val+'</div>' +
+      (sub ? '<div class="note" style="margin-top:3px">'+sub+'</div>' : '') + '</div>';
+  }
+
+  function renderCardioStats(host){
+    var corr = CARDIO_LOGS.filter(ehCorrida), bike = CARDIO_LOGS.filter(ehBike);
+    var sem = somaSemanas(ehCorrida, 8), semB = somaSemanas(ehBike, 8);
+    var kmTot = corr.reduce(function(a,l){ return a + (l.distance||0); }, 0);
+    var kmBike = bike.reduce(function(a,l){ return a + (l.distance||0); }, 0);
+    var minTot = CARDIO_LOGS.reduce(function(a,l){ return a + (l.duration||0); }, 0);
+    var paces = corr.filter(function(l){ return l.pace; });
+    var maior = bike.reduce(function(a,l){ return Math.max(a, l.distance||0); }, 0);
+    var tempoBike = bike.reduce(function(a,l){ return a + (l.duration||0); }, 0);
+
+    function barras(dados, campo, cor, un){
+      var max = dados.reduce(function(a,d){ return Math.max(a, d[campo]); }, 0) || 1;
+      return '<div class="card" style="padding:14px"><div class="eyebrow" style="margin-bottom:12px">Últimas 8 semanas</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;align-items:end;height:110px">' +
+          dados.map(function(d){
+            var h = Math.max(3, Math.round(d[campo]/max*100));
+            return '<div style="display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:4px">' +
+              '<div class="num" style="font-size:9.5px;color:var(--muted);text-align:center">'+(d[campo]?fmt(d[campo], campo==='km'?1:0):'')+'</div>' +
+              '<div style="height:'+h+'%;background:'+cor+';border-radius:5px;min-height:3px;opacity:'+(d[campo]?1:.25)+'"></div></div>';
+          }).join('') + '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:7px">' +
+          dados.map(function(d){ return '<div class="note" style="font-size:9px;text-align:center">'+d.label+'</div>'; }).join('') +
+        '</div>' +
+        '<div class="note" style="margin-top:9px;text-align:center">'+un+'</div></div>';
+    }
+
+    var marcas = [1,3,5,10].map(function(km){
+      var b = melhorMarca(km);
+      return '<div class="pr-row"><div><div class="pr-name">'+km+' km</div>' +
+        '<div class="pr-date">'+(b ? longDate(b.date) : 'sem marca ainda')+'</div></div>' +
+        '<div class="pr-val">'+(b ? fmtDur(b.t) : '–')+'</div></div>';
+    }).join('');
+
+    host.innerHTML =
+      '<div class="page-head">' + watermark('var(--cardio)') + '<div>' +
+        '<h1 class="page">Cardio</h1>' +
+        '<div class="page-sub">'+CARDIO_LOGS.length+(CARDIO_LOGS.length===1?' sessão':' sessões')+' · '+fmtDur(minTot*60)+' no total</div>' +
+      '</div></div>' + segCardio() +
+
+      '<div class="stack-lg">' +
+        '<div class="stack"><h2 class="section">Corrida</h2>' +
+          '<div class="grid-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:9px">' +
+            cardTile('Volume total', fmt(kmTot,1)+' km', corr.length + (corr.length===1?' corrida':' corridas')) +
+            cardTile('Pace médio', paces.length ? fmtPace(paces.reduce(function(a,l){ return a+l.pace; },0)/paces.length)+'/km' : '–',
+                     paces.length ? 'média de '+paces.length+' sessões' : 'sem distância registrada') +
+          '</div>' +
+          barras(sem, 'km', 'var(--cardio)', 'quilômetros por semana') +
+          (paces.length > 1
+            ? '<div class="card" style="padding:14px"><div class="eyebrow" style="margin-bottom:10px">Evolução do pace</div>' +
+              lineChart({height:120, padLeft:34, padRight:40, aria:'Evolução do pace',
+                series:[{points: paces.map(function(l){ return {y:l.pace, label:shortDate(l.date)}; }),
+                         color:'var(--cardio)', width:2.2, dots:true, area:true,
+                         endLabel:fmtPace(paces[paces.length-1].pace)}]}) +
+              '<div class="note" style="margin-top:8px;text-align:center">quanto mais baixo, mais rápido</div></div>'
+            : '') +
+          '<div class="card"><div class="eyebrow" style="margin-bottom:10px">Melhores marcas</div>' +
+            '<div class="pr-list">'+marcas+'</div>' +
+            '<div class="note" style="margin-top:10px">Estimado pelo ritmo da sessão em que você passou dessa distância.</div></div>' +
+        '</div>' +
+
+        '<div class="stack"><h2 class="section">Bicicleta</h2>' +
+          '<div class="grid-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:9px">' +
+            cardTile('Volume total', fmt(kmBike,1)+' km', bike.length + (bike.length===1?' pedal':' pedais')) +
+            cardTile('Maior distância', maior ? fmt(maior,1)+' km' : '–', tempoBike ? fmtDur(tempoBike*60)+' pedalando' : '') +
+          '</div>' +
+          (kmBike ? barras(semB, 'km', 'var(--g-pull)', 'quilômetros por semana') : '<div class="empty">Nenhum pedal registrado.</div>') +
+        '</div>' +
+
+        '<div class="stack"><h2 class="section">Geral</h2>' +
+          '<div class="card"><div class="pr-list">' +
+            '<div class="pr-row"><div><div class="pr-name">Corrida</div><div class="pr-date">'+corr.length+' sessões</div></div>' +
+              '<div class="pr-val">'+fmt(kmTot,1)+'<small>km</small></div></div>' +
+            '<div class="pr-row"><div><div class="pr-name">Bicicleta</div><div class="pr-date">'+bike.length+' sessões</div></div>' +
+              '<div class="pr-val">'+fmt(kmBike,1)+'<small>km</small></div></div>' +
+            '<div class="pr-row"><div><div class="pr-name">Outros</div><div class="pr-date">'+(CARDIO_LOGS.length-corr.length-bike.length)+' sessões</div></div>' +
+              '<div class="pr-val">'+fmtDur(CARDIO_LOGS.filter(function(l){ return !ehCorrida(l) && !ehBike(l); }).reduce(function(a,l){ return a+(l.duration||0); },0)*60)+'</div></div>' +
+          '</div></div>' +
+          '<div class="card" style="margin-top:9px"><div class="eyebrow" style="margin-bottom:10px">Constância</div>' +
+            '<div class="pr-list">' + somaSemanas(function(){ return true; }, 6).slice().reverse().map(function(d){
+              return '<div class="pr-row"><div><div class="pr-name" style="font-weight:400;color:var(--muted);font-size:13.5px">semana de '+d.label+'</div></div>' +
+                '<div class="pr-val" style="font-size:14px">'+d.n+(d.n===1?' sessão':' sessões')+'<small>'+d.min+' min</small></div></div>';
+            }).join('') + '</div></div>' +
+        '</div>' +
+      '</div>';
+    ligarSeg(host);
+  }
+
+
+  /* ---------- metas ---------- */
+  var META_TIPOS = [
+    ['tempo_distancia', 'Correr X km em Y'],
+    ['distancia',       'Chegar a X km numa sessão'],
+    ['volume_semanal',  'X km por semana'],
+    ['sessoes_semana',  'X sessões por semana']
+  ];
+  function metaLabel(m){
+    for (var i=0;i<META_TIPOS.length;i++) if (META_TIPOS[i][0]===m) return META_TIPOS[i][1];
+    return 'Meta';
+  }
+  /* quanto já foi feito em direção à meta, e o texto do alvo */
+  function progressoMeta(g){
+    var filtro = g.modality === 'bike' ? ehBike : ehCorrida;
+    var L = CARDIO_LOGS.filter(filtro);
+    if (g.metric === 'tempo_distancia'){
+      var km = (g.dist||0)/1000;
+      var b = g.modality === 'bike' ? null : melhorMarca(km);
+      var alvo = 'melhor: ' + (b ? fmtDur(b.t) : '–');
+      var pct = (b && g.time) ? Math.min(100, Math.round(g.time / b.t * 100)) : 0;
+      return {pct:pct, feito: b ? fmtDur(b.t) : '–', alvo: fmt(km,1)+' km em '+fmtDur(g.time||0),
+              nota: alvo, ok: !!(b && g.time && b.t <= g.time)};
+    }
+    if (g.metric === 'distancia'){
+      var maior = L.reduce(function(a,l){ return Math.max(a, l.distance||0); }, 0);
+      var alvoKm = (g.dist||0)/1000;
+      return {pct: alvoKm ? Math.min(100, Math.round(maior/alvoKm*100)) : 0,
+              feito: fmt(maior,1)+' km', alvo: fmt(alvoKm,1)+' km numa sessão',
+              nota:'maior até agora: '+fmt(maior,1)+' km', ok: maior >= alvoKm && alvoKm > 0};
+    }
+    if (g.metric === 'volume_semanal'){
+      var ws = weekStart(0), we = addDays(ws,7);
+      var km2 = L.filter(function(l){ return l.date>=ws && l.date<we; })
+                 .reduce(function(a,l){ return a+(l.distance||0); },0);
+      return {pct: g.value ? Math.min(100, Math.round(km2/g.value*100)) : 0,
+              feito: fmt(km2,1)+' km', alvo: fmt(g.value||0,1)+' km por semana',
+              nota:'nesta semana', ok: km2 >= (g.value||0) && g.value > 0};
+    }
+    var ws2 = weekStart(0), we2 = addDays(ws2,7);
+    var n = L.filter(function(l){ return l.date>=ws2 && l.date<we2; }).length;
+    return {pct: g.value ? Math.min(100, Math.round(n/g.value*100)) : 0,
+            feito: n + (n===1?' sessão':' sessões'), alvo: (g.value||0)+' por semana',
+            nota:'nesta semana', ok: n >= (g.value||0) && g.value > 0};
+  }
+  function metasBatidas(log){
+    var out = [];
+    CGOALS.forEach(function(g){
+      if (g.done) return;
+      var pr = progressoMeta(g);
+      if (pr.ok){ g.done = true; out.push('Meta batida: ' + g.name); }
+    });
+    if (out.length) touchState();
+    return out;
+  }
+
+  function renderMetas(host){
+    host.innerHTML =
+      '<div class="page-head">' + watermark('var(--cardio)') + '<div>' +
+        '<h1 class="page">Cardio</h1>' +
+        '<div class="page-sub">'+CGOALS.length+(CGOALS.length===1?' meta':' metas')+'</div>' +
+      '</div><div class="head-actions">' +
+        '<button class="icon-btn primary" id="mtNew" aria-label="Nova meta" style="background:var(--cardio);border-color:var(--cardio)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button>' +
+      '</div></div>' + segCardio() +
+      '<div class="stack grid-cards">' +
+        (CGOALS.length
+          ? CGOALS.map(function(g){
+              var pr = progressoMeta(g);
+              return '<div class="card" style="padding:14px'+(pr.ok?';border-color:color-mix(in srgb, var(--good) 55%, var(--line))':'')+'">' +
+                '<div class="spread" style="align-items:flex-start">' +
+                  '<div><div class="cd-name">'+esc(g.name)+(pr.ok?' ✓':'')+'</div>' +
+                    '<div class="note" style="margin-top:2px">'+pr.alvo+' · '+(g.modality==='bike'?'bicicleta':'corrida')+'</div></div>' +
+                  '<button class="ed-x" data-mtdel="'+g.id+'" aria-label="Remover meta">' +
+                    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+                '<div class="meta-bar" style="margin-top:11px"><i style="width:'+pr.pct+'%'+(pr.ok?';background:var(--good)':'')+'"></i></div>' +
+                '<div class="spread" style="margin-top:7px">' +
+                  '<span class="note">'+pr.nota+'</span>' +
+                  '<span class="num" style="font-size:13px;font-weight:600">'+pr.feito+'</span></div>' +
+              '</div>';
+            }).join('')
+          : '<div class="empty">Nenhuma meta ainda. Toque no + para criar — 5 km em 25 min, pedalar 50 km, 30 km por semana.</div>') +
+      '</div>';
+    ligarSeg(host);
+    document.getElementById('mtNew').addEventListener('click', openMetaCardioSheet);
+    bindAll(host, '[data-mtdel]', function(b){
+      if (b.getAttribute('data-armado') !== '1'){
+        b.setAttribute('data-armado','1'); toast('Toque de novo pra remover a meta','warn');
+        setTimeout(function(){ b.removeAttribute('data-armado'); }, 4000); return;
+      }
+      CGOALS = CGOALS.filter(function(g){ return g.id !== b.getAttribute('data-mtdel'); });
+      touchState(); renderCardio();
+    });
+  }
+
+  function openMetaCardioSheet(){
+    var g = {modality:'corrida', metric:'tempo_distancia', km:5, tempo:'25:00', valor:30};
+    function render(){
+      var precisaTempo = g.metric === 'tempo_distancia';
+      var precisaKm = g.metric === 'tempo_distancia' || g.metric === 'distancia';
+      var precisaValor = g.metric === 'volume_semanal' || g.metric === 'sessoes_semana';
+      document.getElementById('sheetHost').innerHTML =
+        '<div class="scrim" id="scrimMC"></div>' +
+        '<div class="sheet" role="dialog" aria-label="Nova meta">' +
+          '<div class="grabber"></div>' +
+          '<div class="spread"><h3>Nova meta</h3>' +
+            '<button class="btn ghost sm" id="mcClose">Fechar</button></div>' +
+          '<div class="eyebrow" style="margin:16px 0 8px">Modalidade</div>' +
+          '<div class="chips">' +
+            [['corrida','Corrida'],['bike','Bicicleta']].map(function(m){
+              return '<button class="chip" data-mcmod="'+m[0]+'"'+(g.modality===m[0]?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+m[1]+'</button>';
+            }).join('') + '</div>' +
+          '<div class="eyebrow" style="margin:16px 0 8px">Tipo de meta</div>' +
+          '<div class="chips">' +
+            META_TIPOS.map(function(t){
+              return '<button class="chip" data-mcmetric="'+t[0]+'"'+(g.metric===t[0]?' style="border-color:var(--cardio);color:var(--cardio)"':'')+'>'+t[1]+'</button>';
+            }).join('') + '</div>' +
+          '<div class="row" style="margin-top:16px;gap:8px">' +
+            (precisaKm ? '<div class="field" style="flex:1"><input id="mcKm" type="number" step="0.5" inputmode="decimal" value="'+g.km+'" aria-label="Distância"><label for="mcKm">km</label></div>' : '') +
+            (precisaTempo ? '<div class="field" style="flex:1"><input id="mcT" type="text" value="'+g.tempo+'" placeholder="25:00" aria-label="Tempo"><label for="mcT">tempo</label></div>' : '') +
+            (precisaValor ? '<div class="field" style="flex:1"><input id="mcV" type="number" step="0.5" inputmode="decimal" value="'+g.valor+'" aria-label="Valor"><label for="mcV">'+(g.metric==='volume_semanal'?'km/semana':'sessões/semana')+'</label></div>' : '') +
+          '</div>' +
+          '<div style="margin-top:18px"><button class="btn" id="mcSave" style="background:var(--cardio)">Criar meta</button></div>' +
+        '</div>';
+      lockScroll(true);
+      function fecha(){ document.getElementById('sheetHost').innerHTML=''; lockScroll(false); renderCardio(); }
+      document.getElementById('scrimMC').addEventListener('click', fecha);
+      document.getElementById('mcClose').addEventListener('click', fecha);
+      bindAll(document.getElementById('sheetHost'), '[data-mcmod]', function(b){ g.modality=b.getAttribute('data-mcmod'); render(); });
+      bindAll(document.getElementById('sheetHost'), '[data-mcmetric]', function(b){ g.metric=b.getAttribute('data-mcmetric'); render(); });
+      document.getElementById('mcSave').addEventListener('click', function(){
+        var km = precisaKm ? (parseFloat((document.getElementById('mcKm')||{}).value) || 0) : 0;
+        var tp = precisaTempo ? parseDur((document.getElementById('mcT')||{}).value) : 0;
+        var vl = precisaValor ? (parseFloat((document.getElementById('mcV')||{}).value) || 0) : 0;
+        if (precisaKm && !km){ toast('Põe a distância', 'warn'); return; }
+        if (precisaTempo && !tp){ toast('Põe o tempo, tipo 25:00', 'warn'); return; }
+        if (precisaValor && !vl){ toast('Põe o número', 'warn'); return; }
+        var nome = g.metric === 'tempo_distancia' ? (fmt(km,1)+' km em '+fmtDur(tp))
+                 : g.metric === 'distancia' ? ('Chegar a '+fmt(km,1)+' km')
+                 : g.metric === 'volume_semanal' ? (fmt(vl,1)+' km por semana')
+                 : (vl+' sessões por semana');
+        CGOALS.push({id:newId(), name:nome, modality:g.modality, metric:g.metric,
+                     dist: km ? Math.round(km*1000) : null, time: tp || null,
+                     value: vl || null, done:false, created_at:new Date().toISOString()});
+        touchState(); fecha(); toast('Meta criada');
+      });
+    }
+    render();
   }
 
   /* ===================== CARGAS ===================== */
@@ -3672,19 +4912,21 @@
     host.innerHTML = d.items.map(function(it, i){
       var e = exById[it.ex];
       if (!e) return '';
-      return '<div class="ed-row" style="display:block">' +
-        '<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start">' +
+      return '<div class="ed-row ed-move" style="display:block">' +
+        '<div style="display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:start">' +
+          '<button class="grip" data-grip aria-label="Arrastar para reordenar" style="align-self:center">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 7h.01M9 12h.01M9 17h.01M15 7h.01M15 12h.01M15 17h.01"/></svg></button>' +
           '<span><span class="ed-n">'+esc(e.name)+'</span>' +
             '<span class="ed-e" style="color:'+gColor(e.g)+'">'+grupoLabel(e.g)+' · '+e.eq+'</span></span>' +
           '<button class="ed-x" data-del="'+i+'" aria-label="Remover">' +
             '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-        '<div class="ed-grid">' +
+        '<div class="ed-grid" style="grid-template-columns:1fr 1fr">' +
           '<div class="ed-f"><label>Válidas</label><input type="number" inputmode="numeric" min="1" value="'+it.sets+'" data-f="sets" data-i="'+i+'" aria-label="Séries válidas"></div>' +
           '<div class="ed-f"><label>Aquec.</label><input type="number" inputmode="numeric" min="0" value="'+(it.warm||0)+'" data-f="warm" data-i="'+i+'" aria-label="Séries de aquecimento"></div>' +
-          '<div class="ed-f"><label>Rep mín</label><input type="number" inputmode="numeric" min="1" value="'+(it.rmin||'')+'" data-f="rmin" data-i="'+i+'" aria-label="Repetições mínimas"></div>' +
-          '<div class="ed-f"><label>Rep máx</label><input type="number" inputmode="numeric" min="1" value="'+(it.rmax||'')+'" data-f="rmax" data-i="'+i+'" aria-label="Repetições máximas"></div>' +
         '</div></div>';
     }).join('');
+
+    enableDrag(host, {sel:'.ed-move', arr:function(){ return d.items; }, after:renderEdList});
 
     bindAll(host, '[data-del]', function(b){
       d.items.splice(+b.getAttribute('data-del'), 1); renderFichaEditor();
@@ -3693,7 +4935,7 @@
       inp.addEventListener('input', function(){
         var i = +inp.getAttribute('data-i'), f = inp.getAttribute('data-f');
         var v = parseInt(inp.value, 10);
-        if (isNaN(v)){ if (f === 'rmin' || f === 'rmax') d.items[i][f] = null; return; }
+        if (isNaN(v)) return;
         d.items[i][f] = (f === 'warm') ? Math.max(0, v) : Math.max(1, v);
       });
     });
@@ -3703,9 +4945,6 @@
     var d = edDraft;
     if (!d.name.trim()){ document.getElementById('edName').focus(); return; }
     if (!d.items.length){ toast('Adicione pelo menos um exercício'); return; }
-    d.items.forEach(function(it){
-      if (it.rmin && it.rmax && it.rmax < it.rmin) it.rmax = it.rmin;
-    });
     if (d.id){
       var t = treinoById[d.id];
       t.name = d.name.trim(); t.dow = d.dow; t.weekday = WEEKDAYS[d.dow];
@@ -3845,25 +5084,89 @@
     render();
   }
 
+  /* a etapa escrita pra viajar em texto e voltar inteira */
+  function stepLinha(st){
+    var p = [], reps = Math.max(1, st.reps || 1);
+    var alvo = [];
+    if (st.dist) alvo.push(fmtDist(st.dist));
+    if (st.dur)  alvo.push(fmtDur(st.dur));
+    p.push((reps > 1 ? reps + 'x ' : '') + (alvo.join(' / ') || '–'));
+    if (st.pace)   p.push(fmtPace(st.pace) + '/km');
+    if (st.intens) p.push('esf ' + st.intens);
+    if (st.rest)   p.push('int ' + fmtDur(st.rest));
+    return p.join(' · ');
+  }
+  /* e o caminho de volta */
+  function lerStepLinha(txt, kind){
+    var st = novoStep(kind);
+    var t = ' ' + txt + ' ';
+    var m = t.match(/(\d+)\s*x\s/i);
+    if (m) st.reps = Math.max(1, parseInt(m[1],10) || 1);
+    var pace = t.match(/(\d{1,2}:\d{2})\s*\/\s*km/);
+    if (pace){ st.pace = parsePace(pace[1]); t = t.replace(pace[0], ' '); }
+    var rest = t.match(/int\s+(\d{1,2}:\d{2}(?::\d{2})?)/i);
+    if (rest){ st.rest = parseDur(rest[1]); t = t.replace(rest[0], ' '); }
+    var esf = t.match(/esf\s+(\d{1,2})/i);
+    if (esf){ st.intens = parseInt(esf[1],10) || null; t = t.replace(esf[0], ' '); }
+    var dist = t.match(/(\d+(?:[.,]\d+)?)\s*(km|m)\b/i);
+    if (dist){
+      var v = parseFloat(dist[1].replace(',','.'));
+      st.dist = /km/i.test(dist[2]) ? Math.round(v*1000) : Math.round(v);
+      t = t.replace(dist[0], ' ');
+    }
+    var dur = t.match(/(\d{1,2}:\d{2}(?::\d{2})?)/);
+    if (dur) st.dur = parseDur(dur[1]);
+    return (st.dist || st.dur) ? st : null;
+  }
+  function tipoStepDe(rot){
+    var r = semAcento(rot);
+    for (var i=0;i<STEP_TIPOS.length;i++) if (semAcento(STEP_TIPOS[i][1]) === r) return STEP_TIPOS[i][0];
+    return 'corrida';
+  }
+
   /* ===================== EXPORTAR / IMPORTAR ===================== */
   function exportText(kind){
     var L = [], line = '─────────────────────────────';
     L.push('»UGYM');
-    L.push(kind === 'cardio' ? 'PROTOCOLOS DE CARDIO' : 'FICHA DE TREINO');
+    L.push(kind === 'cardio' ? 'CARDIO' : 'FICHA DE TREINO');
     L.push(longDate(today) + ' de ' + today.getFullYear());
     L.push('');
     if (kind === 'cardio'){
-      activeCardios().forEach(function(c){
-        L.push(c.name.toUpperCase());
-        L.push(line);
-        partsDe(c).forEach(function(pt){
-          L.push('  ' + daysLabel(pt.days).padEnd(12, ' ') + ' ' + (pt.tipo || '?'));
-          var a = alvoTexto(pt.target || {});
-          if (a) L.push('               ' + a);
-        });
-        if (c.note) L.push('  Obs.         ' + c.note);
+      if (cwAtivos().length){
+        L.push('TREINOS MONTADOS');
         L.push('');
-      });
+        cwAtivos().forEach(function(w){
+          L.push(w.name.toUpperCase() + '   ·   ' + (w.modality === 'bike' ? 'Bicicleta' : 'Corrida') +
+                 '   ·   ' + cwTipoLabel(w));
+          L.push(line);
+          (w.steps || []).forEach(function(st, i){
+            L.push('  ' + String(i+1).padStart(2,'0') + '  ' + stepLabel(st.kind));
+            L.push('      ' + stepLinha(st));
+          });
+          var t = cwTotal(w);
+          L.push('');
+          L.push('      Total: ' + (t.dist ? fmtDist(t.dist) : '–') + ' · ' + fmtDur(t.dur));
+          if (w.note) L.push('      Obs: ' + w.note);
+          L.push('');
+        });
+      }
+      if (activeCardios().length){
+        L.push('PROTOCOLOS');
+        L.push('');
+        activeCardios().forEach(function(c){
+          L.push(c.name.toUpperCase());
+          L.push(line);
+          partsDe(c).forEach(function(pt){
+            var w = pt.workout_id ? cwById[pt.workout_id] : null;
+            L.push('  ' + daysLabel(pt.days).padEnd(12, ' ') + ' ' + (pt.tipo || '?'));
+            var a = alvoTexto(pt.target || {});
+            if (a) L.push('               ' + a);
+            if (w) L.push('               treino: ' + w.name);
+          });
+          if (c.note) L.push('  Obs.         ' + c.note);
+          L.push('');
+        });
+      }
     } else {
       activeTreinos().forEach(function(t){
         L.push(t.name.toUpperCase() + '   ·   ' + t.weekday);
@@ -3901,7 +5204,7 @@
           '<button class="btn" id="xPdf" style="flex:1">Gerar PDF</button></div>' +
         '<div style="margin-top:22px"><div class="eyebrow" style="margin-bottom:4px">Importar</div>' +
 
-          '<textarea class="import" id="xImport" placeholder="Cole a ficha aqui..."></textarea>' +
+          '<textarea class="import" id="xImport" placeholder="'+(kind === 'cardio' ? 'Cole os treinos de cardio aqui...' : 'Cole a ficha aqui...')+'"></textarea>' +
           '<button class="btn ghost" id="xDoImport" style="margin-top:10px">Importar</button>' +
           '<div id="xMsg" class="note" style="margin-top:9px;text-align:center"></div></div></div>';
     lockScroll(true);
@@ -3926,7 +5229,7 @@
     document.getElementById('xPdf').addEventListener('click', function(){ openPdf(kind); });
     document.getElementById('xDoImport').addEventListener('click', function(){
       document.getElementById('xMsg').textContent = importText(document.getElementById('xImport').value, kind);
-      renderTreinoList(); renderCargas();
+      renderTreinoList(); renderCargas(); renderCardio(); renderAgenda();
     });
   }
 
@@ -3954,7 +5257,20 @@
     var foot = '<div class="a4-foot"><span>UGYM</span><span>'+longDate(today)+'</span></div>';
 
     if (kind === 'cardio'){
-      return '<div class="a4">' + head('Protocolos de cardio') + '<div class="a4-body">' +
+      var pgTreinos = cwAtivos().map(function(w){
+        return '<div class="a4">' + head('Treino de cardio') + '<div class="a4-body">' +
+          '<div class="a4-sec"><div class="a4-tt"><h4>'+esc(w.name)+'</h4><span>'+cwTipoLabel(w)+'</span></div>' +
+            (w.steps||[]).map(function(st, i){
+              return '<div class="a4-row"><span class="a4-i">'+String(i+1).padStart(2,'0')+'</span>' +
+                '<span><span class="a4-n">'+stepLabel(st.kind)+'</span>' +
+                  '<span class="a4-e">'+stepTexto(st)+'</span></span>' +
+                '<span class="a4-s">'+(st.reps > 1 ? st.reps+'×' : '')+'</span></div>';
+            }).join('') +
+            '<div class="a4-tot">'+cwResumo(w)+'</div>' +
+          '</div>' + foot + '</div></div>';
+      }).join('');
+      return pgTreinos + (activeCardios().length ? '' : '') +
+        (activeCardios().length ? '<div class="a4">' + head('Protocolos de cardio') + '<div class="a4-body">' +
         activeCardios().map(function(c){
           return '<div class="a4-sec"><div class="a4-tt"><h4>'+c.name+'</h4><span>'+daysLabel(diasDe(c))+'</span></div>' +
             partsDe(c).map(function(pt, i){
@@ -3964,8 +5280,8 @@
                   '<span class="a4-e">'+daysLabel(pt.days)+'</span></span>' +
                 '<span class="a4-s">'+(a || '–')+'</span></div>';
             }).join('') +
-            (c.note ? '<div class="a4-tot">'+c.note+'</div>' : '') + '</div>';
-        }).join('') + foot + '</div></div>';
+            (c.note ? '<div class="a4-tot">'+esc(c.note)+'</div>' : '') + '</div>';
+        }).join('') + foot + '</div></div>' : '');
     }
 
     return activeTreinos().map(function(t){
@@ -4003,46 +5319,309 @@
       try { window.print(); } catch(err){}
     });
   }
+
+  /* ---------- importar cardio ---------- */
+  /* lê o mesmo texto que o app exporta: treinos montados e protocolos.
+     casa pelo nome, então reimportar atualiza em vez de duplicar. */
+  function importCardio(raw){
+    var linhas = raw.split('\n');
+    var secao = null;          // 'treinos' | 'protocolos'
+    var wAtual = null, pendente = null;
+    var cAtual = null;
+    var nTreino = 0, nProt = 0, atualizados = 0;
+
+    function achaCw(nome){
+      var a = semAcento(nome);
+      return CWORKOUTS.filter(function(w){ return semAcento(w.name) === a; })[0] || null;
+    }
+    function achaProt(nome){
+      var a = semAcento(nome);
+      return CARDIOS.filter(function(c){ return semAcento(c.name) === a; })[0] || null;
+    }
+    function fechaCw(){
+      if (!wAtual) return;
+      if (!wAtual.steps.length){ wAtual = null; return; }
+      var ja = achaCw(wAtual.name);
+      if (ja){
+        ja.modality = wAtual.modality; ja.kind = wAtual.kind;
+        ja.steps = wAtual.steps; ja.archived = false; ja.archived_at = null;
+        atualizados++;
+      } else {
+        CWORKOUTS.push({id:newId(), name:wAtual.name, modality:wAtual.modality, kind:wAtual.kind,
+                        note:'', archived:false, created_at:new Date().toISOString(),
+                        archived_at:null, steps:wAtual.steps});
+        nTreino++;
+      }
+      wAtual = null;
+    }
+    function fechaProt(){
+      if (!cAtual) return;
+      var partes = cAtual.parts.filter(function(pt){ return pt.days.length && pt.tipo; });
+      if (!partes.length){ cAtual = null; return; }
+      var ja = achaProt(cAtual.name);
+      if (ja){
+        ja.parts = partes; ja.modality = partes[0].tipo; ja.days = diasDe(ja);
+        ja.target = partes[0].target; ja.archived = false; ja.archived_at = null;
+        atualizados++;
+      } else {
+        var novo = {id:newId(), name:cAtual.name, archived:false, note:'',
+                    created_at:new Date().toISOString(), archived_at:null,
+                    parts:partes, modality:partes[0].tipo, days:[], target:partes[0].target};
+        novo.days = diasDe(novo);
+        CARDIOS.push(novo); nProt++;
+      }
+      cAtual = null;
+    }
+
+    linhas.forEach(function(ln){
+      var t = ln.replace(/\s+$/,'');
+      if (!t.trim()) return;
+      if (/^─+$/.test(t.trim())) return;
+      if (/^»?UGYM$/i.test(t.trim())) return;
+
+      if (/^TREINOS MONTADOS\s*$/i.test(t)){ fechaCw(); fechaProt(); secao = 'treinos'; return; }
+      if (/^PROTOCOLOS/i.test(t)){ fechaCw(); fechaProt(); secao = 'protocolos'; return; }
+
+      /* cabeçalho de treino montado: NOME · Modalidade · Metodologia */
+      var hw = t.match(/^(\S.*?)\s+·\s+(Corrida|Bicicleta)\s+·\s+(.+?)\s*$/i);
+      if (hw && secao === 'treinos' && hw[1] === hw[1].toUpperCase()){
+        fechaCw();
+        var nm = hw[1].trim();
+        var mod = /bicicleta/i.test(hw[2]) ? 'bike' : 'corrida';
+        var kind = null, lista = CW_TIPOS[mod] || [];
+        for (var i=0;i<lista.length;i++) if (semAcento(lista[i][1]) === semAcento(hw[3])) kind = lista[i][0];
+        wAtual = {name: nm.charAt(0) + nm.slice(1).toLowerCase(), modality:mod, kind:kind, steps:[]};
+        pendente = null;
+        return;
+      }
+
+      /* cabeçalho de protocolo: NOME sozinho em caixa alta */
+      if (secao === 'protocolos' && /^\S/.test(t) && t === t.toUpperCase() && !/·/.test(t)){
+        fechaProt();
+        var n2 = t.trim();
+        cAtual = {name: n2.charAt(0) + n2.slice(1).toLowerCase(), parts:[]};
+        return;
+      }
+
+      if (secao === 'treinos' && wAtual){
+        var rot = t.match(/^\s{2}\d{2}\s{2}(.+?)\s*$/);
+        if (rot){ pendente = rot[1].trim(); return; }
+        var det = t.match(/^\s{6}(.+?)\s*$/);
+        if (det && pendente){
+          if (/^Total:/i.test(det[1]) || /^Obs:/i.test(det[1])) return;
+          var st = lerStepLinha(det[1], tipoStepDe(pendente));
+          if (st) wAtual.steps.push(st);
+          pendente = null;
+        }
+        return;
+      }
+
+      if (secao === 'protocolos' && cAtual){
+        var dia = t.match(/^\s{2}(\S.*?)\s{2,}(\S.*?)\s*$/);
+        if (dia && !/^Obs\./i.test(dia[1])){
+          var dias = dia[1].split('·').map(function(x){ return x.trim(); })
+                      .map(function(d){ return WEEKDAYS.map(semAcento).indexOf(semAcento(d)); })
+                      .filter(function(i){ return i >= 0; });
+          if (dias.length){
+            cAtual.parts.push({days:dias, tipo: tipoOficial(dia[2]) || dia[2].trim(),
+                               target:{}, workout_id:null});
+          }
+          return;
+        }
+        var alvo = t.match(/^\s{10,}(\S.*?)\s*$/);
+        if (alvo && cAtual.parts.length){
+          var pt = cAtual.parts[cAtual.parts.length-1];
+          var tw = alvo[1].match(/^treino:\s*(.+)$/i);
+          if (tw){
+            var w2 = achaCw(tw[1].trim());
+            if (w2) pt.workout_id = w2.id;
+            return;
+          }
+          var mm = alvo[1].match(/(\d+)\s*min/);        if (mm) pt.target.duration = +mm[1];
+          var km = alvo[1].match(/([\d.,]+)\s*km/);     if (km) pt.target.distance = parseFloat(km[1].replace(',','.'));
+          var inc = alvo[1].match(/([\d.,]+)\s*%/);     if (inc) pt.target.incline = parseFloat(inc[1].replace(',','.'));
+          var niv = alvo[1].match(/n[ií]vel\s*(\d+)/i); if (niv) pt.target.level = +niv[1];
+          var vel = alvo[1].match(/([\d.,]+)\s*km\/h/); if (vel) pt.target.speed = parseFloat(vel[1].replace(',','.'));
+        }
+      }
+    });
+    fechaCw(); fechaProt();
+
+    if (!nTreino && !nProt && !atualizados) return 'Não reconheci nenhum treino nem protocolo no texto.';
+    reindexCw(); reindexCardios(); touchState();
+    var p = [];
+    if (nTreino) p.push(nTreino + (nTreino > 1 ? ' treinos' : ' treino'));
+    if (nProt) p.push(nProt + (nProt > 1 ? ' protocolos' : ' protocolo'));
+    if (atualizados) p.push(atualizados + (atualizados > 1 ? ' atualizados' : ' atualizado'));
+    return p.join(' · ') + '.';
+  }
+
   function closeExportSheet(){
     document.getElementById('sheetHost').innerHTML = '';
     lockScroll(false);
     renderTreinoList(); renderCardio();
   }
 
+  /* pelo nome dá pra saber o grupo: só preciso disso quando o texto não traz */
+  var GRUPO_PISTAS = [
+    [/panturrilha|gemeo|gêmeo/i, 'panturrilha'],
+    [/abdomen|abdômen|abdominal|prancha|obliquo|oblíquo/i, 'abdomen'],
+    [/triceps|tríceps|paralela|mergulho|frances|francês|testa/i, 'triceps'],
+    [/biceps|bíceps|rosca|scott/i, 'biceps'],
+    [/antebraco|antebraço|punho/i, 'antebraco'],
+    [/ombro|elevacao lateral|elevação lateral|elevacao frontal|elevação frontal|desenvolvimento|militar|arnold|crucifixo inverso|encolhimento/i, 'ombros'],
+    [/puxada|remada|barra fixa|pulldown|pull ?over|triangulo|triângulo|serrote/i, 'costas'],
+    [/supino|crucifixo|peck|voador|flexao de braco|flexão de braço|cross ?over/i, 'peito'],
+    [/agachamento|leg ?press|extensora|flexora|stiff|afundo|avanco|avanço|bulgaro|búlgaro|gluteo|glúteo|abdutora|adutora|panturr|terra|hack/i, 'pernas']
+  ];
+  function grupoDe(nome, rotulo){
+    if (rotulo){
+      var r = semAcento(rotulo);
+      for (var i = 0; i < GROUP_ORDER.length; i++){
+        if (semAcento(GROUPS[GROUP_ORDER[i]].label) === r) return GROUP_ORDER[i];
+      }
+    }
+    for (var j = 0; j < GRUPO_PISTAS.length; j++){
+      if (GRUPO_PISTAS[j][0].test(nome)) return GRUPO_PISTAS[j][1];
+    }
+    return 'peito';
+  }
+  /* "OMBRO E TRÍCEPS" -> "Ombro e Tríceps" */
+  var PALAVRINHAS = ['e','de','da','do','no','na','com','para','a','o','em'];
+  function capitaliza(txt){
+    return String(txt||'').toLowerCase().split(/\s+/).map(function(w, i){
+      if (i && PALAVRINHAS.indexOf(w) >= 0) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
+  }
+  function equipDe(rotulo){
+    var r = semAcento(rotulo || '');
+    for (var i = 0; i < EQUIP.length; i++) if (semAcento(EQUIP[i]) === r) return EQUIP[i];
+    return (rotulo || '').trim() || 'Livre';
+  }
+
+  /* lê "3 séries (+2 aquec) · Halter · Ombros" em qualquer das variações que já saíram daqui */
+  function lerSpec(txt){
+    var t = ' ' + txt.replace(/\s+/g, ' ').trim() + ' ';
+    var m = t.match(/(\d+)\s*(?:s[ée]ries?|s[ée]rie|×|x)\b/i);
+    if (!m) return null;
+    var out = {sets: Math.max(1, parseInt(m[1],10) || 1), warm: 0, eq: '', grupo: ''};
+    var aq = t.match(/\+\s*(\d+)\s*aquec/i);
+    if (aq) out.warm = parseInt(aq[1],10) || 0;
+    var cauda = t.split('·').slice(1).map(function(x){ return x.trim(); }).filter(Boolean);
+    if (cauda.length){
+      out.eq = cauda[0];
+      if (cauda.length > 1) out.grupo = cauda[1];
+    }
+    return out;
+  }
+
   function importText(raw, kind){
     if (!raw || raw.trim().length < 10) return 'Cole um texto exportado primeiro.';
-    if (kind === 'cardio') return 'Importação de cardio ainda não implementada no protótipo.';
-    var lines = raw.split('\n'), created = 0, current = null, pending = null, novos = [];
-    lines.forEach(function(ln){
-      var header = ln.match(/^([^\s].*?)\s+·\s+(Seg|Ter|Qua|Qui|Sex|Sáb|Dom)\s*$/);
-      if (header && header[1] === header[1].toUpperCase()){
-        var nm = header[1].trim();
-        current = {id:newId(),
-                   name: nm.charAt(0) + nm.slice(1).toLowerCase(),
-                   weekday: header[2], dow: WEEKDAYS.indexOf(header[2]), archived:false, items:[]};
-        TREINOS.push(current); novos.push(current.id); reindexTreinos(); created++; pending = null;
+    if (kind === 'cardio') return importCardio(raw);
+
+    var linhas = raw.split('\n');
+    var feitos = [], atual = null, pendente = null, nEx = 0, naoLidas = 0;
+
+    function achaTreino(nome){
+      var a = semAcento(nome);
+      return TREINOS.filter(function(t){ return semAcento(t.name) === a; })[0] || null;
+    }
+    function fecha(){
+      if (!atual) return;
+      if (!atual.items.length){ atual = null; return; }
+      var ja = achaTreino(atual.name);
+      if (ja){
+        ja.items = atual.items; ja.dow = atual.dow; ja.weekday = atual.weekday;
+        ja.archived = false;
+        feitos.push({nome:ja.name, n:atual.items.length, novo:false});
+      } else {
+        TREINOS.push({id:newId(), name:atual.name, weekday:atual.weekday, dow:atual.dow,
+                      archived:false, items:atual.items});
+        feitos.push({nome:atual.name, n:atual.items.length, novo:true});
+      }
+      reindexTreinos();
+      atual = null;
+    }
+    function poeExercicio(nome, spec){
+      nome = nome.replace(/\s+/g,' ').trim();
+      if (!nome) return;
+      var eq = equipDe(spec.eq);
+      var achado = EXERCISES.filter(function(e){
+        return semAcento(e.name) === semAcento(nome) &&
+               (!spec.eq || semAcento(e.eq) === semAcento(eq));
+      })[0];
+      if (!achado){
+        /* mesmo nome com outro aparelho: aproveita em vez de duplicar */
+        achado = EXERCISES.filter(function(e){ return semAcento(e.name) === semAcento(nome); })[0];
+      }
+      if (!achado){
+        var g = grupoDe(nome, spec.grupo);
+        achado = {id:newId(), name:nome, g:g, eq:eq, fam:famDe(nome, g)};
+        if (/peso corporal/i.test(eq)) achado.bw = true;
+        EXERCISES.push(achado); reindexEx();
+      }
+      atual.items.push({ex:achado.id, sets:spec.sets, warm:spec.warm, rmin:null, rmax:null, reps:[]});
+      nEx++;
+    }
+
+    linhas.forEach(function(ln){
+      var t = ln.replace(/\s+$/,'');
+      if (!t.trim()) return;
+      if (/^─+$/.test(t.trim())) return;
+      if (/^»?UGYM$/i.test(t.trim())) return;
+      if (/^(FICHA DE TREINO|PROPOSTA.*|CARDIO)\s*$/i.test(t.trim())) return;
+
+      /* cabeçalho do dia: NOME · Seg  (aceita acento e caixa) */
+      var h = t.match(/^\s*(\S.*?)\s*[·|-]\s*(Seg|Ter|Qua|Qui|Sex|S[áa]b|Dom)\.?\s*$/i);
+      if (h && h[1] === h[1].toUpperCase() && !/^\d/.test(h[1].trim())){
+        fecha();
+        var nm = h[1].trim().replace(/\s+/g,' ');
+        var dia = WEEKDAYS.filter(function(w){ return semAcento(w) === semAcento(h[2]); })[0] || WEEKDAYS[1];
+        atual = {name: capitaliza(nm), weekday: dia, dow: WEEKDAYS.indexOf(dia), items: []};
+        pendente = null;
         return;
       }
-      var exLine = ln.match(/^\s{2}\d{2}\s{2}(.+?)\s*$/);
-      if (exLine && current){ pending = exLine[1].trim(); return; }
-      var spec = ln.match(/^\s{6}(\d+)\s*×\s*(\d+)[–-](\d+)\s*·\s*(.+?)\s*·\s*(.+?)\s*$/);
-      if (spec && current && pending){
-        var nome = pending, equip = spec[4].trim();
-        var found = EXERCISES.filter(function(e){
-          return semAcento(e.name) === semAcento(nome) && semAcento(e.eq) === semAcento(equip);
-        })[0];
-        if (!found){
-          var grp = GROUP_ORDER.filter(function(g){ return GROUPS[g].label === spec[5].trim(); })[0] || 'peito';
-          found = {id:newId(), name:nome, g:grp, eq:equip, fam:famDe(nome, grp)};
-          EXERCISES.push(found); reindexEx();
+      if (!atual) return;
+      if (/^\s*Total:/i.test(t)) { return; }
+
+      /* linha do exercício, numerada ou não */
+      var num = t.match(/^\s{1,8}\d{1,2}[.)]?\s{1,6}(\S.*)$/);
+      var corpo = num ? num[1] : null;
+      if (corpo !== null){
+        var spec = lerSpec(corpo);
+        if (spec){
+          /* tudo numa linha só: o nome é o que vem antes da contagem */
+          var corte = corpo.search(/\d+\s*(?:s[ée]ries?|s[ée]rie|×|x)\b/i);
+          poeExercicio(corte > 0 ? corpo.slice(0, corte) : corpo, spec);
+          pendente = null;
+        } else {
+          pendente = corpo;          /* nome agora, detalhe na próxima linha */
         }
-        current.items.push({ex:found.id, sets:+spec[1], rmin:+spec[2], rmax:+spec[3], reps:[]});
-        pending = null;
+        return;
       }
+      /* linha de detalhe de um nome que ficou pendurado */
+      var det = t.match(/^\s{3,}(\S.*)$/);
+      if (det && pendente){
+        var sp2 = lerSpec(det[1]);
+        if (sp2){ poeExercicio(pendente, sp2); pendente = null; }
+        else naoLidas++;
+        return;
+      }
+      if (det) naoLidas++;
     });
-    TREINOS = TREINOS.filter(function(t){ return t.items.length > 0 || novos.indexOf(t.id) < 0; });
-    reindexTreinos();
-    return created ? created + ' treino' + (created>1?'s':'') + ' importado' + (created>1?'s':'') + '.' : 'Não reconheci nenhum treino no texto.';
+    fecha();
+
+    if (!feitos.length){
+      return 'Não consegui ler nenhum treino. Cada dia precisa de um cabeçalho tipo "OMBRO E TRÍCEPS · Seg" e exercícios numerados com a quantidade de séries.';
+    }
+    reindexTreinos(); reindexEx(); touchState();
+    var novos = feitos.filter(function(f){ return f.novo; }).length;
+    var atualizados = feitos.length - novos;
+    var p = [];
+    if (novos) p.push(novos + (novos > 1 ? ' treinos novos' : ' treino novo'));
+    if (atualizados) p.push(atualizados + (atualizados > 1 ? ' atualizados' : ' atualizado'));
+    return p.join(' · ') + ' · ' + nEx + ' exercícios' + (naoLidas ? ' (' + naoLidas + ' linhas ignoradas)' : '') + '.';
   }
 
   /* ===================== AGENDA ===================== */
@@ -4198,7 +5777,9 @@
   var PHOTOS = [];
 
   function renderFotos(){
+    /* a aba saiu da interface; os registros continuam no banco e na nuvem, intactos */
     var host = document.getElementById('fotosBody');
+    if (!host) return;
     var all = PHOTOS.slice().reverse();
 
     host.innerHTML =
@@ -4418,7 +5999,7 @@
   });
 
   /* ===================== tabs ===================== */
-  var SCREENS = {treinos:'tab-treinos', cardio:'tab-cardio', cargas:'tab-cargas', fotos:'tab-fotos', peso:'tab-peso'};
+  var SCREENS = {treinos:'tab-treinos', cardio:'tab-cardio', cargas:'tab-cargas', peso:'tab-peso'};
   Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(btn){
     btn.addEventListener('click', function(){
       var name = btn.getAttribute('data-tab');

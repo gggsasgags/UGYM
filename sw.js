@@ -1,6 +1,6 @@
 // UGYM - cache do app para funcionar sem internet.
 // Os dados ficam no localStorage do aparelho, o service worker só guarda a casca.
-const CACHE = 'ugym-v6';
+const CACHE = 'ugym-v10';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './supabase.js', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'
