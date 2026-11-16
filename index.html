@@ -5559,8 +5559,8 @@
         return semAcento(e.name) === semAcento(nome) &&
                (!spec.eq || semAcento(e.eq) === semAcento(eq));
       })[0];
-      if (!achado){
-        /* mesmo nome com outro aparelho: aproveita em vez de duplicar */
+      if (!achado && !spec.eq){
+        /* sem aparelho no texto: aproveita o que já existe com esse nome */
         achado = EXERCISES.filter(function(e){ return semAcento(e.name) === semAcento(nome); })[0];
       }
       if (!achado){
