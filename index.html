@@ -899,7 +899,15 @@
   var treinoById = {};
   function reindexTreinos(){ treinoById = {}; TREINOS.forEach(function(t){ treinoById[t.id] = t; }); }
   reindexTreinos();
-  function activeTreinos(){ return TREINOS.filter(function(t){ return !t.archived; }); }
+  /* a ficha sempre na ordem da semana, igual ao calendário: Dom, Seg, Ter... */
+  function porDia(a, b){
+    var d = (a.dow === undefined || a.dow === null ? 9 : a.dow) -
+            (b.dow === undefined || b.dow === null ? 9 : b.dow);
+    return d || String(a.name||'').localeCompare(String(b.name||''), 'pt-BR');
+  }
+  function activeTreinos(){
+    return TREINOS.filter(function(t){ return !t.archived; }).sort(porDia);
+  }
   function isBw(exId){ return !!(exById[exId] && exById[exId].bw); }
 
   var CARDIOS = [];
@@ -1977,7 +1985,7 @@
   }
   function openArquivo(qual){
     function lista(){
-      if (qual === 'treinos')  return TREINOS.filter(function(t){ return t.archived; });
+      if (qual === 'treinos')  return TREINOS.filter(function(t){ return t.archived; }).sort(porDia);
       if (qual === 'cwork')    return CWORKOUTS.filter(function(w){ return w.archived; });
       return CARDIOS.filter(function(c){ return c.archived; });
     }
@@ -2108,7 +2116,7 @@
     }
 
     var weekly = weeklySetsByGroup(), maxSets = weekly.length ? weekly[0].sets : 1;
-    var arch = TREINOS.filter(function(t){ return t.archived; });
+    var arch = TREINOS.filter(function(t){ return t.archived; }).sort(porDia);
 
     body.innerHTML =
       '<div class="card">' +
